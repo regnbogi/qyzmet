@@ -1,0 +1,5733 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:geolocator/geolocator.dart';
+
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkNotifier,
+      builder: (_, isDark, __) => ValueListenableBuilder<String>(
+        valueListenable: langNotifier,
+        builder: (_, lang, __) => ValueListenableBuilder<String>(
+          valueListenable: roleNotifier,
+          builder: (_, role, __) {
+            final isMaster = role == 'master';
+            return MaterialApp(
+              title: 'QyzmetQZ',
+              debugShowCheckedModeBanner: false,
+              theme: isMaster ? AppThemes.masterTheme : AppThemes.clientTheme,
+              darkTheme: isMaster
+                  ? AppThemes.masterDarkTheme
+                  : AppThemes.clientDarkTheme,
+              themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+              home: const SplashScreen(),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// КОНСТАНТЫ
+// ─────────────────────────────────────────────
+// Светлая тема
+// СТАЛО — новая палитра:
+const kBlue1 = Color(0xFF1A237E);
+const kBlue2 = Color(0xFF3949AB);
+const kGreen1 = Color(0xFF2E7D32);
+const kGreen2 = Color(0xFF43A047);
+
+// Цвета карточек категорий
+const kCatRepair = Color(0xFF1A237E);
+const kCatTutors = Color(0xFF2E7D32);
+const kCatBeauty = Color(0xFF4A148C);
+const kCatFreelance = Color(0xFFE65100);
+const kCatLegal = Color(0xFF1565C0);
+const kCatSport = Color(0xFF880E4F);
+const kCatArtists = Color(0xFF00695C);
+const kCatHome = Color(0xFF4E342E);
+const kCatVet = Color(0xFF37474F);
+const kCatAuto = Color(0xFF6A1B9A);
+const kCatOther = Color(0xFF558B2F);
+// Тёмная тема — ДОБАВЬ ЭТИ СТРОКИ
+const kDarkBg = Color(0xFF1C1C1E);
+const kDarkCard = Color(0xFF2C2C2E);
+const kDarkDivider = Color(0xFF3A3A3C);
+const kDarkText = Color(0xFFFFFFFF);
+const kDarkSubText = Color(0xFF8E8E93);
+
+// Используется везде вместо Colors.white / Color(0xFF1C1C1E) и т.д.
+Color kCardBg() => darkNotifier.value ? kDarkCard : Colors.white;
+Color kScaffoldBg() => darkNotifier.value ? kDarkBg : Colors.white;
+Color kPrimaryText() =>
+    darkNotifier.value ? kDarkText : const Color(0xFF1C1C1E);
+Color kSecondaryText() =>
+    darkNotifier.value ? kDarkSubText : const Color(0xFF8E8E93);
+Color kDividerColor() =>
+    darkNotifier.value ? kDarkDivider : Colors.black.withOpacity(0.06);
+Color kFieldBg() =>
+    darkNotifier.value ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7);
+
+final ValueNotifier<String> langNotifier = ValueNotifier('RU');
+final ValueNotifier<bool> darkNotifier = ValueNotifier(false);
+final ValueNotifier<String> roleNotifier = ValueNotifier('client');
+final ValueNotifier<List<Color>> gradientNotifier = ValueNotifier([
+  kBlue1,
+  kBlue2,
+]);
+void setRoleColors(String role) {
+  if (role == 'master') {
+    gradientNotifier.value = [Color(0xFF1B5E20), Color(0xFF43A047)];
+  } else {
+    gradientNotifier.value = [kBlue1, kBlue2];
+  }
+}
+
+// ─────────────────────────────────────────────
+// ПЕРЕВОДЫ
+// ─────────────────────────────────────────────
+const _translations = {
+  'RU': {
+    'find_master': 'Найди мастера рядом',
+    'role_subtitle': 'Выберите свою роль в приложении',
+    'who_are_you': 'Кто вы?',
+    'tap_to_continue': 'Нажмите чтобы продолжить',
+    'i_am_client': 'Я клиент',
+    'i_am_client_sub': 'Ищу мастера для работы',
+    'i_am_master': 'Я мастер',
+    'i_am_master_sub': 'Предлагаю свои услуги',
+    'change_role_hint': 'Можно сменить роль в настройках',
+    'your_city': 'Ваш город',
+    'city_subtitle': 'Выберите или определите автоматически',
+    'detect_location': 'Определить моё местоположение',
+    'detecting': 'Определяем...',
+    'or_choose_city': 'Или выберите город',
+    'mode_master': '🔨 Режим мастера',
+    'mode_client': '👤 Режим клиента',
+    'switch_to_master': 'Режим мастера',
+    'switch_to_client': 'Режим клиента',
+    'find_master_hint': 'Найти мастера...',
+    'categories': 'Категории',
+    'spec_count': 'спец.',
+    'profile': 'Профиль',
+    'not_logged_in': 'Вы не вошли в аккаунт',
+    'login_register': 'Войти / Зарегистрироваться',
+    'close': 'Закрыть',
+    'masters_soon': 'Мастера появятся здесь',
+    'masters_soon_sub': 'Скоро здесь будут лучшие мастера',
+    'hello_login': 'Привет, Войдите!',
+    'create_account': 'Создать Аккаунт!',
+    'master_label': 'Мастер · QyzmetQZ',
+    'client_label': 'Клиент · QyzmetQZ',
+    'tab_login': 'Войти',
+    'tab_register': 'Регистрация',
+    'phone': 'Номер телефона',
+    'email': 'Email',
+    'password': 'Пароль',
+    'forgot_password': 'Забыли пароль?',
+    'btn_login': 'ВОЙТИ',
+    'no_account': 'Нет аккаунта?  ',
+    'sign_up': 'Sign up',
+    'first_name': 'Имя',
+    'last_name': 'Фамилия',
+    'first_name_hint': 'Серик',
+    'last_name_hint': 'Нуржанов',
+    'confirm_password': 'Подтвердите пароль',
+    'password_hint': 'Минимум 6 символов',
+    'repeat_password': 'Повторите пароль',
+    'passwords_no_match': 'Пароли не совпадают',
+    'agree_text': 'Я принимаю ',
+    'terms': 'Условия использования',
+    'and': ' и ',
+    'privacy': 'Политику конфиденциальности',
+    'btn_register': 'ЗАРЕГИСТРИРОВАТЬСЯ',
+    'have_account': 'Уже есть аккаунт?  ',
+    'sign_in': 'Sign in',
+    'specialization': 'Специализация',
+    'spec_hint': 'Можно выбрать до 3 специализаций',
+    'spec_selected': 'выбрано',
+    'add_spec': 'Добавить специализацию',
+    'max_spec': 'Максимум 3 специализации выбрано',
+    'choose_category': 'Выберите категорию',
+    'specializations': 'специализаций',
+    'reset_password': 'Сброс пароля',
+    'reset_subtitle': 'Восстановление доступа',
+    'send_sms': 'ОТПРАВИТЬ SMS-КОД',
+    'send_email': 'ОТПРАВИТЬ ПИСЬМО',
+    'sms_sent': 'SMS отправлено ✅',
+    'email_sent': 'Письмо отправлено ✅',
+    'code_sent_to': 'Код отправлен на номер\n',
+    'instruction_sent_to': 'Инструкция отправлена на\n',
+    'reset_phone_hint':
+        'Введите номер телефона привязанный к аккаунту. Отправим SMS с кодом.',
+    'reset_email_hint':
+        'Введите email привязанный к аккаунту. Отправим письмо с инструкцией.',
+    'error': 'Ошибка',
+    'ok': 'OK',
+    'fill_all': 'Заполните все поля',
+    'choose_spec': 'Выберите хотя бы одну специализацию',
+    'accept_terms': 'Примите условия использования',
+    'success': 'Успешно!',
+    'logged_in': 'Вы вошли в аккаунт',
+    'account_created': 'Аккаунт создан!',
+    'welcome_master': 'Добро пожаловать, мастер!',
+    'welcome': 'Добро пожаловать!',
+    'geo_disabled': 'Геолокация отключена.',
+    'geo_denied': 'Разрешение отклонено.',
+    'geo_blocked': 'Заблокировано.',
+    'geo_error': 'Ошибка.',
+    'back': 'Назад',
+    'pass_rule_length': 'Минимум 6 символов',
+    'pass_rule_digit': 'Минимум 1 цифра (0-9)',
+    'pass_rule_upper': 'Минимум 1 заглавная буква (A-Z)',
+    'pass_rule_special': 'Минимум 1 спецсимвол (!@#\$%)',
+    // Города
+    'city_almaty': 'Алматы',
+    'city_astana': 'Астана',
+    'city_shymkent': 'Шымкент',
+    'city_karaganda': 'Караганда',
+    'city_aktobe': 'Актобе',
+    'city_taraz': 'Тараз',
+    'city_pavlodar': 'Павлодар',
+    'city_ust_kamenogorsk': 'Усть-Каменогорск',
+    'city_semipalatinsk': 'Семипалатинск',
+    'city_atyrau': 'Атырау',
+    'city_kostanay': 'Костанай',
+    'city_kyzylorda': 'Кызылорда',
+    'city_uralsk': 'Уральск',
+    'city_petropavlovsk': 'Петропавловск',
+    'city_aktau': 'Актау',
+    'city_temirtau': 'Темиртау',
+    'city_turkestan': 'Туркестан',
+    'city_kokshetau': 'Кокшетау',
+    'city_taldykorgan': 'Талдыкорган',
+    'city_ekibastuz': 'Экибастуз',
+    // Категории
+    'cat_repair': 'Мастера по ремонту',
+    'cat_tutors': 'Репетиторы',
+    'cat_beauty': 'Мастера красоты',
+    'cat_freelance': 'Фрилансеры',
+    'cat_legal': 'Бухгалтеры и юристы',
+    'cat_sport': 'Спортивные тренеры',
+    'cat_artists': 'Артисты',
+    'cat_home': 'Домашний персонал',
+    'cat_vet': 'Ветеринары',
+    'cat_auto': 'Автоинструкторы',
+    'cat_other': 'Другие',
+    // Подкатегории — ремонт
+    'sub_plumbers': 'Сантехники',
+    'sub_electricians': 'Электрики',
+    'sub_tilers': 'Плиточники',
+    'sub_plasterers': 'Штукатуры',
+    'sub_turnkey': 'Ремонт под ключ',
+    'sub_welders': 'Сварщики',
+    'sub_roofers': 'Кровельщики',
+    'sub_finishers': 'Отделочники',
+    // Подкатегории — репетиторы
+    'sub_english': 'Английский язык',
+    'sub_math': 'Математика',
+    'sub_russian': 'Русский язык',
+    'sub_primary': 'Начальная школа',
+    'sub_music': 'Музыка',
+    'sub_physics': 'Физика',
+    'sub_chemistry': 'Химия',
+    'sub_biology': 'Биология',
+    // Подкатегории — красота
+    'sub_makeup': 'Макияж',
+    'sub_manicure': 'Маникюр',
+    'sub_hairstyle': 'Причёски',
+    'sub_epilation': 'Эпиляция',
+    'sub_stylists': 'Стилисты',
+    'sub_brows': 'Брови и ресницы',
+    'sub_massage': 'Массаж',
+    'sub_visage': 'Визажисты',
+    // Подкатегории — фриланс
+    'sub_designers': 'Дизайнеры',
+    'sub_marketing': 'Маркетинг',
+    'sub_sysadmin': 'Системные администраторы',
+    'sub_copywriting': 'Работа с текстами',
+    'sub_it_outsource': 'IT-аутсорсинг',
+    'sub_programmers': 'Программисты',
+    'sub_smm': 'SMM',
+    'sub_seo': 'SEO',
+    // Подкатегории — юристы/бухгалтеры
+    'sub_lawyers': 'Юристы',
+    'sub_accountants': 'Бухгалтеры',
+    'sub_realtors': 'Риелторы',
+    'sub_business_consult': 'Бизнес-консультанты',
+    'sub_business_trainers': 'Бизнес-тренеры',
+    'sub_notaries': 'Нотариусы',
+    // Подкатегории — спорт
+    'sub_fitness': 'Фитнес',
+    'sub_yoga': 'Йога',
+    'sub_pilates': 'Пилатес',
+    'sub_stretching': 'Стретчинг',
+    'sub_aerobics': 'Аэробика',
+    'sub_boxing': 'Бокс',
+    'sub_swimming': 'Плавание',
+    'sub_martial_arts': 'Единоборства',
+    // Подкатегории — артисты
+    'sub_musicians': 'Музыканты',
+    'sub_dancers': 'Танцоры',
+    'sub_hosts': 'Ведущие',
+    'sub_magicians': 'Фокусники',
+    'sub_clowns': 'Клоуны',
+    'sub_photographers': 'Фотографы',
+    'sub_videographers': 'Видеографы',
+    // Подкатегории — домперсонал
+    'sub_housekeepers': 'Домработницы',
+    'sub_drivers': 'Водители',
+    'sub_dog_walking': 'Выгул собак',
+    'sub_caregivers': 'Сиделки',
+    'sub_household': 'Помощник по хозяйству',
+    'sub_nannies': 'Няни',
+    'sub_cooks': 'Повара',
+    // Подкатегории — ветеринары
+    'sub_pet_boarding': 'Передержка животных',
+    'sub_cynology': 'Кинология',
+    'sub_grooming': 'Груминг',
+    'sub_vet_therapy': 'Ветеринарная терапия',
+    'sub_cat_treatment': 'Лечение кошек',
+    'sub_dog_treatment': 'Лечение собак',
+    // Подкатегории — автоинструкторы
+    'sub_manual': 'Вождение (МКПП)',
+    'sub_auto': 'Вождение (АКПП)',
+    'sub_moto': 'Вождение мотоцикла',
+    'sub_traffic_rules': 'Теория ПДД',
+    'sub_extreme_driving': 'Контраварийное вождение',
+    // Другие
+    'sub_cargo': 'Грузоперевозки',
+  },
+  'KZ': {
+    'find_master': 'Жақындағы шеберді тап',
+    'role_subtitle': 'Қолданбадағы рөліңізді таңдаңыз',
+    'who_are_you': 'Сіз кімсіз?',
+    'tap_to_continue': 'Жалғастыру үшін басыңыз',
+    'i_am_client': 'Мен клиентпін',
+    'i_am_client_sub': 'Жұмыс үшін шебер іздеймін',
+    'i_am_master': 'Мен шебермін',
+    'i_am_master_sub': 'Өз қызметімді ұсынамын',
+    'change_role_hint': 'Рөлді параметрлерден өзгертуге болады',
+    'your_city': 'Сіздің қалаңыз',
+    'city_subtitle': 'Таңдаңыз немесе автоматты анықтаңыз',
+    'detect_location': 'Менің орналасқан жерімді анықтау',
+    'detecting': 'Анықталуда...',
+    'or_choose_city': 'Немесе қаланы таңдаңыз',
+    'mode_master': '🔨 Шебер режимі',
+    'mode_client': '👤 Клиент режимі',
+    'switch_to_master': 'Шебер режимі',
+    'switch_to_client': 'Клиент режимі',
+    'find_master_hint': 'Шебер іздеу...',
+    'categories': 'Санаттар',
+    'spec_count': 'маман.',
+    'profile': 'Профиль',
+    'not_logged_in': 'Сіз аккаунтқа кірмедіңіз',
+    'login_register': 'Кіру / Тіркелу',
+    'close': 'Жабу',
+    'masters_soon': 'Шеберлер осында пайда болады',
+    'masters_soon_sub': 'Жақында үздік шеберлер осында болады',
+    'hello_login': 'Сәлем, Кіріңіз!',
+    'create_account': 'Аккаунт жасау!',
+    'master_label': 'Шебер · QyzmetQZ',
+    'client_label': 'Клиент · QyzmetQZ',
+    'tab_login': 'Кіру',
+    'tab_register': 'Тіркелу',
+    'phone': 'Телефон нөмірі',
+    'email': 'Email',
+    'password': 'Құпия сөз',
+    'forgot_password': 'Құпия сөзді ұмыттыңыз ба?',
+    'btn_login': 'КІРУ',
+    'no_account': 'Аккаунт жоқ па?  ',
+    'sign_up': 'Тіркелу',
+    'first_name': 'Аты',
+    'last_name': 'Тегі',
+    'first_name_hint': 'Серік',
+    'last_name_hint': 'Нұржанов',
+    'confirm_password': 'Құпия сөзді растаңыз',
+    'password_hint': 'Кемінде 6 таңба',
+    'repeat_password': 'Құпия сөзді қайталаңыз',
+    'passwords_no_match': 'Құпия сөздер сәйкес келмейді',
+    'agree_text': 'Мен қабылдаймын ',
+    'terms': 'Пайдалану шарттарын',
+    'and': ' және ',
+    'privacy': 'Құпиялылық саясатын',
+    'btn_register': 'ТІРКЕЛУ',
+    'have_account': 'Аккаунт бар ма?  ',
+    'sign_in': 'Кіру',
+    'specialization': 'Мамандану',
+    'spec_hint': '3 маманданудан таңдауға болады',
+    'spec_selected': 'таңдалды',
+    'add_spec': 'Мамандану қосу',
+    'max_spec': 'Ең көбі 3 мамандану таңдалды',
+    'choose_category': 'Санатты таңдаңыз',
+    'specializations': 'мамандану',
+    'reset_password': 'Құпия сөзді қалпына келтіру',
+    'reset_subtitle': 'Қолжетімділікті қалпына келтіру',
+    'send_sms': 'SMS-КОД ЖІБЕРУ',
+    'send_email': 'ХАТЬ ЖІБЕРУ',
+    'sms_sent': 'SMS жіберілді ✅',
+    'email_sent': 'Хат жіберілді ✅',
+    'code_sent_to': 'Код нөмірге жіберілді\n',
+    'instruction_sent_to': 'Нұсқаулық жіберілді\n',
+    'reset_phone_hint':
+        'Аккаунтқа байланған телефон нөмірін енгізіңіз. SMS код жібереміз.',
+    'reset_email_hint':
+        'Аккаунтқа байланған email енгізіңіз. Нұсқаулықпен хат жібереміз.',
+    'error': 'Қате',
+    'ok': 'OK',
+    'fill_all': 'Барлық өрістерді толтырыңыз',
+    'choose_spec': 'Кемінде бір мамандануды таңдаңыз',
+    'accept_terms': 'Пайдалану шарттарын қабылдаңыз',
+    'success': 'Сәтті!',
+    'logged_in': 'Сіз аккаунтқа кірдіңіз',
+    'account_created': 'Аккаунт жасалды!',
+    'welcome_master': 'Қош келдіңіз, шебер!',
+    'welcome': 'Қош келдіңіз!',
+    'geo_disabled': 'Геолокация өшірілген.',
+    'geo_denied': 'Рұқсат берілмеді.',
+    'geo_blocked': 'Бұғатталған.',
+    'geo_error': 'Қате.',
+    'back': 'Артқа',
+    'pass_rule_length': 'Кемінде 6 таңба',
+    'pass_rule_digit': 'Кемінде 1 сан (0-9)',
+    'pass_rule_upper': 'Кемінде 1 бас әріп (A-Z)',
+    'pass_rule_special': 'Кемінде 1 арнайы таңба (!@#\$%)',
+    // Города
+    'city_almaty': 'Алматы',
+    'city_astana': 'Астана',
+    'city_shymkent': 'Шымкент',
+    'city_karaganda': 'Қарағанды',
+    'city_aktobe': 'Ақтөбе',
+    'city_taraz': 'Тараз',
+    'city_pavlodar': 'Павлодар',
+    'city_ust_kamenogorsk': 'Өскемен',
+    'city_semipalatinsk': 'Семей',
+    'city_atyrau': 'Атырау',
+    'city_kostanay': 'Қостанай',
+    'city_kyzylorda': 'Қызылорда',
+    'city_uralsk': 'Орал',
+    'city_petropavlovsk': 'Петропавл',
+    'city_aktau': 'Ақтау',
+    'city_temirtau': 'Теміртау',
+    'city_turkestan': 'Түркістан',
+    'city_kokshetau': 'Көкшетау',
+    'city_taldykorgan': 'Талдықорған',
+    'city_ekibastuz': 'Екібастұз',
+    // Категории
+    'cat_repair': 'Жөндеу шеберлері',
+    'cat_tutors': 'Репетиторлар',
+    'cat_beauty': 'Сұлулық шеберлері',
+    'cat_freelance': 'Фрилансерлер',
+    'cat_legal': 'Бухгалтерлер мен заңгерлер',
+    'cat_sport': 'Спорт жаттықтырушылары',
+    'cat_artists': 'Артистер',
+    'cat_home': 'Үй персоналы',
+    'cat_vet': 'Ветеринарлар',
+    'cat_auto': 'Автонұсқаушылар',
+    'cat_other': 'Басқалар ',
+    // Подкатегории — ремонт
+    'sub_plumbers': 'Сантехниктер',
+    'sub_electricians': 'Электриктер',
+    'sub_tilers': 'Плиточниктер',
+    'sub_plasterers': 'Сылақшылар',
+    'sub_turnkey': 'Кілтке дейін жөндеу',
+    'sub_welders': 'Дәнекершілер',
+    'sub_roofers': 'Шатырлаушылар',
+    'sub_finishers': 'Әрлеушілер',
+    // Подкатегории — репетиторы
+    'sub_english': 'Ағылшын тілі',
+    'sub_math': 'Математика',
+    'sub_russian': 'Орыс тілі',
+    'sub_primary': 'Бастауыш мектеп',
+    'sub_music': 'Музыка',
+    'sub_physics': 'Физика',
+    'sub_chemistry': 'Химия',
+    'sub_biology': 'Биология',
+    // Подкатегории — красота
+    'sub_makeup': 'Макияж',
+    'sub_manicure': 'Маникюр',
+    'sub_hairstyle': 'Шаш үлгісі',
+    'sub_epilation': 'Эпиляция',
+    'sub_stylists': 'Стилистер',
+    'sub_brows': 'Қас пен кірпік',
+    'sub_massage': 'Массаж',
+    'sub_visage': 'Визажистер',
+    // Подкатегории — фриланс
+    'sub_designers': 'Дизайнерлер',
+    'sub_marketing': 'Маркетинг',
+    'sub_sysadmin': 'Жүйелік әкімшілер',
+    'sub_copywriting': 'Мәтінмен жұмыс',
+    'sub_it_outsource': 'IT-аутсорсинг',
+    'sub_programmers': 'Бағдарламашылар',
+    'sub_smm': 'SMM',
+    'sub_seo': 'SEO',
+    // Подкатегории — юристы/бухгалтеры
+    'sub_lawyers': 'Заңгерлер',
+    'sub_accountants': 'Бухгалтерлер',
+    'sub_realtors': 'Риелторлар',
+    'sub_business_consult': 'Бизнес-кеңесшілер',
+    'sub_business_trainers': 'Бизнес-тренерлер',
+    'sub_notaries': 'Нотариустар',
+    // Подкатегории — спорт
+    'sub_fitness': 'Фитнес',
+    'sub_yoga': 'Йога',
+    'sub_pilates': 'Пилатес',
+    'sub_stretching': 'Стретчинг',
+    'sub_aerobics': 'Аэробика',
+    'sub_boxing': 'Бокс',
+    'sub_swimming': 'Жүзу',
+    'sub_martial_arts': 'Жекпе-жек өнері',
+    // Подкатегории — артисты
+    'sub_musicians': 'Музыканттар',
+    'sub_dancers': 'Биші',
+    'sub_hosts': 'Жүргізушілер',
+    'sub_magicians': 'Фокусниктер',
+    'sub_clowns': 'Клоундар',
+    'sub_photographers': 'Фотографтар',
+    'sub_videographers': 'Видеографтар',
+    // Подкатегории — домперсонал
+    'sub_housekeepers': 'Үй қызметшілері',
+    'sub_drivers': 'Жүргізушілер',
+    'sub_dog_walking': 'Иттерді серуендету',
+    'sub_caregivers': 'Күтушілер',
+    'sub_household': 'Үй шаруасына көмекші',
+    'sub_nannies': 'Бала күтушілер',
+    'sub_cooks': 'Аспазшылар',
+    // Подкатегории — ветеринары
+    'sub_pet_boarding': 'Үй жануарларын күту',
+    'sub_cynology': 'Кинология',
+    'sub_grooming': 'Грумминг',
+    'sub_vet_therapy': 'Ветеринарлық терапия',
+    'sub_cat_treatment': 'Мысықтарды емдеу',
+    'sub_dog_treatment': 'Иттерді емдеу',
+    // Подкатегории — автоинструкторы
+    'sub_manual': 'Жүргізу (МКПП)',
+    'sub_auto': 'Жүргізу (АКПП)',
+    'sub_moto': 'Мотоцикл жүргізу',
+    'sub_traffic_rules': 'ЖҚЕ теориясы',
+    'sub_extreme_driving': 'Авариялық жүргізу',
+    // Подкатегории  - Другие
+    'sub_cargo': 'Жүк тасымалы',
+  },
+  'EN': {
+    'find_master': 'Find a master nearby',
+    'role_subtitle': 'Choose your role in the app',
+    'who_are_you': 'Who are you?',
+    'tap_to_continue': 'Tap to continue',
+    'i_am_client': 'I am a client',
+    'i_am_client_sub': 'Looking for a master',
+    'i_am_master': 'I am a master',
+    'i_am_master_sub': 'Offering my services',
+    'change_role_hint': 'You can change role in settings',
+    'your_city': 'Your city',
+    'city_subtitle': 'Choose or detect automatically',
+    'detect_location': 'Detect my location',
+    'detecting': 'Detecting...',
+    'or_choose_city': 'Or choose a city',
+    'mode_master': '🔨 Master mode',
+    'mode_client': '👤 Client mode',
+    'switch_to_master': 'Master mode',
+    'switch_to_client': 'Client mode',
+    'find_master_hint': 'Find a master...',
+    'categories': 'Categories',
+    'spec_count': 'spec.',
+    'profile': 'Profile',
+    'not_logged_in': 'You are not logged in',
+    'login_register': 'Login / Register',
+    'close': 'Close',
+    'masters_soon': 'Masters will appear here',
+    'masters_soon_sub': 'The best masters are coming soon',
+    'hello_login': 'Hello, Sign In!',
+    'create_account': 'Create Account!',
+    'master_label': 'Master · QyzmetQZ',
+    'client_label': 'Client · QyzmetQZ',
+    'tab_login': 'Login',
+    'tab_register': 'Register',
+    'phone': 'Phone number',
+    'email': 'Email',
+    'password': 'Password',
+    'forgot_password': 'Forgot password?',
+    'btn_login': 'LOGIN',
+    'no_account': 'No account?  ',
+    'sign_up': 'Sign up',
+    'first_name': 'First name',
+    'last_name': 'Last name',
+    'first_name_hint': 'Serik',
+    'last_name_hint': 'Nurzhanov',
+    'confirm_password': 'Confirm password',
+    'password_hint': 'Minimum 6 characters',
+    'repeat_password': 'Repeat password',
+    'passwords_no_match': 'Passwords do not match',
+    'agree_text': 'I accept the ',
+    'terms': 'Terms of Use',
+    'and': ' and ',
+    'privacy': 'Privacy Policy',
+    'btn_register': 'REGISTER',
+    'have_account': 'Already have an account?  ',
+    'sign_in': 'Sign in',
+    'specialization': 'Specialization',
+    'spec_hint': 'You can choose up to 3 specializations',
+    'spec_selected': 'selected',
+    'add_spec': 'Add specialization',
+    'max_spec': 'Maximum 3 specializations selected',
+    'choose_category': 'Choose category',
+    'specializations': 'specializations',
+    'reset_password': 'Reset password',
+    'reset_subtitle': 'Account recovery',
+    'send_sms': 'SEND SMS CODE',
+    'send_email': 'SEND EMAIL',
+    'sms_sent': 'SMS sent ✅',
+    'email_sent': 'Email sent ✅',
+    'code_sent_to': 'Code sent to\n',
+    'instruction_sent_to': 'Instructions sent to\n',
+    'reset_phone_hint':
+        'Enter the phone number linked to your account. We will send an SMS code.',
+    'reset_email_hint':
+        'Enter the email linked to your account. We will send instructions.',
+    'error': 'Error',
+    'ok': 'OK',
+    'fill_all': 'Fill in all fields',
+    'choose_spec': 'Choose at least one specialization',
+    'accept_terms': 'Accept the terms of use',
+    'success': 'Success!',
+    'logged_in': 'You have logged in',
+    'account_created': 'Account created!',
+    'welcome_master': 'Welcome, master!',
+    'welcome': 'Welcome!',
+    'geo_disabled': 'Location services disabled.',
+    'geo_denied': 'Permission denied.',
+    'geo_blocked': 'Blocked.',
+    'geo_error': 'Error.',
+    'back': 'Back',
+    'pass_rule_length': 'At least 6 characters',
+    'pass_rule_digit': 'At least 1 digit (0-9)',
+    'pass_rule_upper': 'At least 1 uppercase letter (A-Z)',
+    'pass_rule_special': 'At least 1 special character (!@#\$%)',
+    // Cities
+    'city_almaty': 'Almaty',
+    'city_astana': 'Astana',
+    'city_shymkent': 'Shymkent',
+    'city_karaganda': 'Karaganda',
+    'city_aktobe': 'Aktobe',
+    'city_taraz': 'Taraz',
+    'city_pavlodar': 'Pavlodar',
+    'city_ust_kamenogorsk': 'Ust-Kamenogorsk',
+    'city_semipalatinsk': 'Semey',
+    'city_atyrau': 'Atyrau',
+    'city_kostanay': 'Kostanay',
+    'city_kyzylorda': 'Kyzylorda',
+    'city_uralsk': 'Uralsk',
+    'city_petropavlovsk': 'Petropavl',
+    'city_aktau': 'Aktau',
+    'city_temirtau': 'Temirtau',
+    'city_turkestan': 'Turkestan',
+    'city_kokshetau': 'Kokshetau',
+    'city_taldykorgan': 'Taldykorgan',
+    'city_ekibastuz': 'Ekibastuz',
+    // Categories
+    'cat_repair': 'Repair Masters',
+    'cat_tutors': 'Tutors',
+    'cat_beauty': 'Beauty Masters',
+    'cat_freelance': 'Freelancers',
+    'cat_legal': 'Accountants & Lawyers',
+    'cat_sport': 'Sports Trainers',
+    'cat_artists': 'Artists',
+    'cat_home': 'Household Staff',
+    'cat_vet': 'Veterinarians',
+    'cat_auto': 'Driving Instructors',
+    'cat_other': 'Other',
+    // Subcategories — repair
+    'sub_plumbers': 'Plumbers',
+    'sub_electricians': 'Electricians',
+    'sub_tilers': 'Tilers',
+    'sub_plasterers': 'Plasterers',
+    'sub_turnkey': 'Turnkey Renovation',
+    'sub_welders': 'Welders',
+    'sub_roofers': 'Roofers',
+    'sub_finishers': 'Finishing Workers',
+    // Subcategories — tutors
+    'sub_english': 'English',
+    'sub_math': 'Mathematics',
+    'sub_russian': 'Russian',
+    'sub_primary': 'Primary School',
+    'sub_music': 'Music',
+    'sub_physics': 'Physics',
+    'sub_chemistry': 'Chemistry',
+    'sub_biology': 'Biology',
+    // Subcategories — beauty
+    'sub_makeup': 'Makeup',
+    'sub_manicure': 'Manicure',
+    'sub_hairstyle': 'Hairstyles',
+    'sub_epilation': 'Epilation',
+    'sub_stylists': 'Stylists',
+    'sub_brows': 'Brows & Lashes',
+    'sub_massage': 'Massage',
+    'sub_visage': 'Visagists',
+    // Subcategories — freelance
+    'sub_designers': 'Designers',
+    'sub_marketing': 'Marketing',
+    'sub_sysadmin': 'System Administrators',
+    'sub_copywriting': 'Copywriting',
+    'sub_it_outsource': 'IT Outsourcing',
+    'sub_programmers': 'Programmers',
+    'sub_smm': 'SMM',
+    'sub_seo': 'SEO',
+    // Subcategories — legal
+    'sub_lawyers': 'Lawyers',
+    'sub_accountants': 'Accountants',
+    'sub_realtors': 'Realtors',
+    'sub_business_consult': 'Business Consultants',
+    'sub_business_trainers': 'Business Trainers',
+    'sub_notaries': 'Notaries',
+    // Subcategories — sport
+    'sub_fitness': 'Fitness',
+    'sub_yoga': 'Yoga',
+    'sub_pilates': 'Pilates',
+    'sub_stretching': 'Stretching',
+    'sub_aerobics': 'Aerobics',
+    'sub_boxing': 'Boxing',
+    'sub_swimming': 'Swimming',
+    'sub_martial_arts': 'Martial Arts',
+    // Subcategories — artists
+    'sub_musicians': 'Musicians',
+    'sub_dancers': 'Dancers',
+    'sub_hosts': 'Hosts',
+    'sub_magicians': 'Magicians',
+    'sub_clowns': 'Clowns',
+    'sub_photographers': 'Photographers',
+    'sub_videographers': 'Videographers',
+    // Subcategories — home staff
+    'sub_housekeepers': 'Housekeepers',
+    'sub_drivers': 'Drivers',
+    'sub_dog_walking': 'Dog Walking',
+    'sub_caregivers': 'Caregivers',
+    'sub_household': 'Household Helpers',
+    'sub_nannies': 'Nannies',
+    'sub_cooks': 'Cooks',
+    // Subcategories — vet
+    'sub_pet_boarding': 'Pet Boarding',
+    'sub_cynology': 'Cynology',
+    'sub_grooming': 'Grooming',
+    'sub_vet_therapy': 'Veterinary Therapy',
+    'sub_cat_treatment': 'Cat Treatment',
+    'sub_dog_treatment': 'Dog Treatment',
+    // Subcategories — driving
+    'sub_manual': 'Manual Transmission',
+    'sub_auto': 'Automatic Transmission',
+    'sub_moto': 'Motorcycle Riding',
+    'sub_traffic_rules': 'Traffic Rules Theory',
+    'sub_extreme_driving': 'Defensive Driving',
+    // Subcategories - Other
+    'sub_cargo': 'Cargo Transportation',
+  },
+};
+
+String t(String key) =>
+    _translations[langNotifier.value]?[key] ?? _translations['RU']![key] ?? key;
+
+// ─────────────────────────────────────────────
+// ГОРОДА — теперь хранят ключ перевода вместо
+// строки на русском. Отображаемое имя = t(key)
+// ─────────────────────────────────────────────
+const List<Map<String, dynamic>> kazakhstanCities = [
+  {'key': 'city_almaty', 'lat': 43.2220, 'lon': 76.8512},
+  {'key': 'city_astana', 'lat': 51.1801, 'lon': 71.4460},
+  {'key': 'city_shymkent', 'lat': 42.3417, 'lon': 69.5901},
+  {'key': 'city_karaganda', 'lat': 49.8047, 'lon': 73.1094},
+  {'key': 'city_aktobe', 'lat': 50.2839, 'lon': 57.1670},
+  {'key': 'city_taraz', 'lat': 42.9000, 'lon': 71.3667},
+  {'key': 'city_pavlodar', 'lat': 52.2873, 'lon': 76.9674},
+  {'key': 'city_ust_kamenogorsk', 'lat': 49.9483, 'lon': 82.6283},
+  {'key': 'city_semipalatinsk', 'lat': 50.4111, 'lon': 80.2275},
+  {'key': 'city_atyrau', 'lat': 47.1167, 'lon': 51.8833},
+  {'key': 'city_kostanay', 'lat': 53.2144, 'lon': 63.6240},
+  {'key': 'city_kyzylorda', 'lat': 44.8479, 'lon': 65.5093},
+  {'key': 'city_uralsk', 'lat': 51.2333, 'lon': 51.3667},
+  {'key': 'city_petropavlovsk', 'lat': 54.8647, 'lon': 69.1533},
+  {'key': 'city_aktau', 'lat': 43.6500, 'lon': 51.1833},
+  {'key': 'city_temirtau', 'lat': 50.0581, 'lon': 72.9619},
+  {'key': 'city_turkestan', 'lat': 43.2975, 'lon': 68.2614},
+  {'key': 'city_kokshetau', 'lat': 53.2833, 'lon': 69.3833},
+  {'key': 'city_taldykorgan', 'lat': 45.0153, 'lon': 78.3729},
+  {'key': 'city_ekibastuz', 'lat': 51.7167, 'lon': 75.3667},
+];
+
+/// Возвращает ключ ближайшего города (не строку, а ключ перевода)
+String findNearestCityKey(double lat, double lon) {
+  String nearestKey = kazakhstanCities[0]['key'];
+  double minDist = double.infinity;
+  for (final c in kazakhstanCities) {
+    final d = Geolocator.distanceBetween(lat, lon, c['lat'], c['lon']);
+    if (d < minDist) {
+      minDist = d;
+      nearestKey = c['key'];
+    }
+  }
+  return nearestKey;
+}
+
+// ─────────────────────────────────────────────
+// КАТЕГОРИИ — теперь хранят ключи перевода.
+// Все отображаемые строки берутся через t()
+// ─────────────────────────────────────────────
+const List<Map<String, dynamic>> categoryData = [
+  {
+    'icon': Icons.build_rounded,
+    'color': kCatRepair,
+    'titleKey': 'cat_repair',
+    'subcategoryKeys': [
+      'sub_plumbers',
+      'sub_electricians',
+      'sub_tilers',
+      'sub_plasterers',
+      'sub_turnkey',
+      'sub_welders',
+      'sub_roofers',
+      'sub_finishers',
+    ],
+  },
+  {
+    'icon': Icons.school_rounded,
+    'color': kCatTutors,
+    'titleKey': 'cat_tutors',
+    'subcategoryKeys': [
+      'sub_english',
+      'sub_math',
+      'sub_russian',
+      'sub_primary',
+      'sub_music',
+      'sub_physics',
+      'sub_chemistry',
+      'sub_biology',
+    ],
+  },
+  {
+    'icon': Icons.auto_awesome_rounded,
+    'color': kCatBeauty,
+    'titleKey': 'cat_beauty',
+    'subcategoryKeys': [
+      'sub_makeup',
+      'sub_manicure',
+      'sub_hairstyle',
+      'sub_epilation',
+      'sub_stylists',
+      'sub_brows',
+      'sub_massage',
+      'sub_visage',
+    ],
+  },
+  {
+    'icon': Icons.laptop_rounded,
+    'color': kCatFreelance,
+    'titleKey': 'cat_freelance',
+    'subcategoryKeys': [
+      'sub_designers',
+      'sub_marketing',
+      'sub_sysadmin',
+      'sub_copywriting',
+      'sub_it_outsource',
+      'sub_programmers',
+      'sub_smm',
+      'sub_seo',
+    ],
+  },
+  {
+    'icon': Icons.gavel_rounded,
+    'color': kCatLegal,
+    'titleKey': 'cat_legal',
+    'subcategoryKeys': [
+      'sub_lawyers',
+      'sub_accountants',
+      'sub_realtors',
+      'sub_business_consult',
+      'sub_business_trainers',
+      'sub_notaries',
+    ],
+  },
+  {
+    'icon': Icons.fitness_center_rounded,
+    'color': kCatSport,
+    'titleKey': 'cat_sport',
+    'subcategoryKeys': [
+      'sub_fitness',
+      'sub_yoga',
+      'sub_pilates',
+      'sub_stretching',
+      'sub_aerobics',
+      'sub_boxing',
+      'sub_swimming',
+      'sub_martial_arts',
+    ],
+  },
+  {
+    'icon': Icons.music_note_rounded,
+    'color': kCatArtists,
+    'titleKey': 'cat_artists',
+    'subcategoryKeys': [
+      'sub_musicians',
+      'sub_dancers',
+      'sub_hosts',
+      'sub_magicians',
+      'sub_clowns',
+      'sub_photographers',
+      'sub_videographers',
+    ],
+  },
+  {
+    'icon': Icons.home_rounded,
+    'color': kCatHome,
+    'titleKey': 'cat_home',
+    'subcategoryKeys': [
+      'sub_housekeepers',
+      'sub_drivers',
+      'sub_dog_walking',
+      'sub_caregivers',
+      'sub_household',
+      'sub_nannies',
+      'sub_cooks',
+    ],
+  },
+  {
+    'icon': Icons.pets_rounded,
+    'color': kCatVet,
+    'titleKey': 'cat_vet',
+    'subcategoryKeys': [
+      'sub_pet_boarding',
+      'sub_cynology',
+      'sub_grooming',
+      'sub_vet_therapy',
+      'sub_cat_treatment',
+      'sub_dog_treatment',
+    ],
+  },
+  {
+    'icon': Icons.directions_car_rounded,
+    'color': kCatAuto,
+    'titleKey': 'cat_auto',
+    'subcategoryKeys': [
+      'sub_manual',
+      'sub_auto',
+      'sub_moto',
+      'sub_traffic_rules',
+      'sub_extreme_driving',
+    ],
+  },
+  {
+    'icon': Icons.category_rounded,
+    'color': kCatOther,
+    'titleKey': 'cat_other',
+    'subcategoryKeys': ['sub_cargo'],
+  },
+];
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+class _Blob extends StatelessWidget {
+  final double size;
+  final Color color;
+  const _Blob(this.size, this.color);
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
+}
+
+String _formatPhone(String input) {
+  String d = input.replaceAll(RegExp(r'[^\d]'), '');
+  if (d.startsWith('7')) d = d.substring(1);
+  if (d.length > 10) d = d.substring(0, 10);
+  String r = '+7 ';
+  if (d.isEmpty) return r;
+  if (d.length <= 3) return '$r($d';
+  if (d.length <= 6) return '$r(${d.substring(0, 3)}) ${d.substring(3)}';
+  if (d.length <= 8)
+    return '$r(${d.substring(0, 3)}) ${d.substring(3, 6)}-${d.substring(6)}';
+  return '$r(${d.substring(0, 3)}) ${d.substring(3, 6)}-${d.substring(6, 8)}-${d.substring(8)}';
+}
+
+// ─────────────────────────────────────────────
+// APP SHELL
+// ─────────────────────────────────────────────
+class _AppShell extends StatelessWidget {
+  final List<Color> grad;
+  final Widget Function(String lang) headerBuilder;
+  final Widget Function(String lang) cardBuilder;
+  final bool showBack;
+
+  const _AppShell({
+    required this.grad,
+    required this.headerBuilder,
+    required this.cardBuilder,
+    this.showBack = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkNotifier,
+      builder: (_, isDark, __) => ValueListenableBuilder<String>(
+        valueListenable: langNotifier,
+        builder: (context, lang, _) {
+          final h = MediaQuery.of(context).size.height;
+          return Scaffold(
+            backgroundColor: isDark ? kDarkBg : Colors.white,
+            body: Stack(
+              children: [
+                Container(
+                  height: h * 0.42,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: grad,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: -50,
+                  right: -50,
+                  child: _Blob(190, Colors.white.withOpacity(0.06)),
+                ),
+                Positioned(
+                  top: 40,
+                  right: 20,
+                  child: _Blob(110, Colors.white.withOpacity(0.09)),
+                ),
+                Positioned(
+                  top: 80,
+                  right: 110,
+                  child: _Blob(55, Colors.white.withOpacity(0.13)),
+                ),
+                Positioned(
+                  top: -20,
+                  left: -20,
+                  child: _Blob(140, Colors.white.withOpacity(0.07)),
+                ),
+                Positioned(
+                  top: 150,
+                  left: 30,
+                  child: _Blob(70, Colors.white.withOpacity(0.10)),
+                ),
+                Positioned(
+                  top: 110,
+                  left: 170,
+                  child: _Blob(42, Colors.white.withOpacity(0.15)),
+                ),
+                SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 4, 16, 0),
+                        child: Row(
+                          children: [
+                            if (showBack)
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () => Navigator.pop(context),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      CupertinoIcons.chevron_left,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    Text(
+                                      t('back'),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 17,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              const SizedBox(width: 16),
+                            const Spacer(),
+                            const _LangButton(),
+                            const SizedBox(width: 8),
+                            _SettingsButton(),
+                            const SizedBox(width: 4),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          28,
+                          showBack ? 6 : 16,
+                          28,
+                          0,
+                        ),
+                        child: headerBuilder(lang),
+                      ),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: isDark ? kDarkBg : Colors.white,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(36),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isDark ? Colors.black45 : Colors.black12,
+                                blurRadius: 20,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
+                          ),
+                          child: cardBuilder(lang),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// SPLASH
+// ─────────────────────────────────────────────
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _fade, _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+    _scale = Tween(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    _ctrl.forward();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted)
+        Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(builder: (_) => const RoleSelectScreen()),
+        );
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [kBlue1, kBlue2, kGreen2],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+            Positioned(
+              top: -60,
+              right: -60,
+              child: _Blob(220, Colors.white.withOpacity(0.06)),
+            ),
+            Positioned(
+              top: 60,
+              right: 30,
+              child: _Blob(120, Colors.white.withOpacity(0.09)),
+            ),
+            Positioned(
+              top: -30,
+              left: -30,
+              child: _Blob(160, Colors.white.withOpacity(0.07)),
+            ),
+            Positioned(
+              bottom: 80,
+              left: 40,
+              child: _Blob(90, Colors.white.withOpacity(0.08)),
+            ),
+            Center(
+              child: FadeTransition(
+                opacity: _fade,
+                child: ScaleTransition(
+                  scale: _scale,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text('🔨', style: TextStyle(fontSize: 52)),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'QyzmetQZ',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        t('find_master'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// РОЛЬ
+// ─────────────────────────────────────────────
+class RoleSelectScreen extends StatelessWidget {
+  const RoleSelectScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AppShell(
+      grad: const [kBlue1, kBlue2],
+      headerBuilder: (lang) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'QyzmetQZ',
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t('role_subtitle'),
+            style: const TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
+      cardBuilder: (lang) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              t('who_are_you'),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: darkNotifier.value ? kDarkText : const Color(0xFF1C1C1E),
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              t('tap_to_continue'),
+              style: TextStyle(
+                fontSize: 14,
+                color: darkNotifier.value
+                    ? kDarkSubText
+                    : Colors.black.withOpacity(0.4),
+              ),
+            ),
+            const SizedBox(height: 28),
+            _RoleBtn(
+              emoji: '👤',
+              title: t('i_am_client'),
+              subtitle: t('i_am_client_sub'),
+              grad: const [kBlue1, kBlue2],
+              onTap: () => Navigator.pushReplacement(
+                context,
+                CupertinoPageRoute(
+                  builder: (_) => const CitySelectScreen(role: 'client'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _RoleBtn(
+              emoji: '🔨',
+              title: t('i_am_master'),
+              subtitle: t('i_am_master_sub'),
+              grad: const [kGreen1, kGreen2],
+              onTap: () => Navigator.pushReplacement(
+                context,
+                CupertinoPageRoute(
+                  builder: (_) => const CitySelectScreen(role: 'master'),
+                ),
+              ),
+            ),
+            const Spacer(),
+            Center(
+              child: Text(
+                t('change_role_hint'),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black.withOpacity(0.3),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleBtn extends StatefulWidget {
+  final String emoji, title, subtitle;
+  final List<Color> grad;
+  final VoidCallback onTap;
+  const _RoleBtn({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.grad,
+    required this.onTap,
+  });
+  @override
+  State<_RoleBtn> createState() => _RoleBtnState();
+}
+
+class _RoleBtnState extends State<_RoleBtn> {
+  bool _p = false;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _p = true),
+      onTapUp: (_) {
+        setState(() => _p = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _p = false),
+      child: AnimatedScale(
+        scale: _p ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.grad,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: widget.grad[1].withOpacity(0.35),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.22),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.emoji,
+                    style: const TextStyle(fontSize: 26),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.22),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  CupertinoIcons.chevron_right,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ГОРОД
+// cityKey хранит ключ перевода (например 'city_almaty'),
+// а не строку на конкретном языке.
+// ─────────────────────────────────────────────
+class CitySelectScreen extends StatefulWidget {
+  final String role;
+  const CitySelectScreen({super.key, required this.role});
+  @override
+  State<CitySelectScreen> createState() => _CitySelectScreenState();
+}
+
+class _CitySelectScreenState extends State<CitySelectScreen> {
+  bool _loading = false;
+
+  Future<void> _detect() async {
+    setState(() => _loading = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        _err(t('geo_disabled'));
+        setState(() => _loading = false);
+        return;
+      }
+      LocationPermission p = await Geolocator.checkPermission();
+      if (p == LocationPermission.denied) {
+        p = await Geolocator.requestPermission();
+        if (p == LocationPermission.denied) {
+          _err(t('geo_denied'));
+          setState(() => _loading = false);
+          return;
+        }
+      }
+      if (p == LocationPermission.deniedForever) {
+        _err(t('geo_blocked'));
+        setState(() => _loading = false);
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      // Получаем ключ перевода, а не строку
+      final cityKey = findNearestCityKey(pos.latitude, pos.longitude);
+      if (mounted)
+        Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(
+            builder: (_) => HomeScreen(cityKey: cityKey, role: widget.role),
+          ),
+        );
+    } catch (_) {
+      _err(t('geo_error'));
+      setState(() => _loading = false);
+    }
+  }
+
+  void _err(String m) => showCupertinoDialog(
+    context: context,
+    builder: (_) => CupertinoAlertDialog(
+      title: Text(t('error')),
+      content: Text(m),
+      actions: [
+        CupertinoDialogAction(
+          child: Text(t('ok')),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ),
+  );
+
+  void _go(String cityKey) => Navigator.pushReplacement(
+    context,
+    CupertinoPageRoute(
+      builder: (_) => HomeScreen(cityKey: cityKey, role: widget.role),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return _AppShell(
+      grad: const [kBlue1, kBlue2],
+      headerBuilder: (lang) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t('your_city'),
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t('city_subtitle'),
+            style: const TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
+      // cardBuilder реагирует на lang — список городов перерисуется при смене языка
+      cardBuilder: (lang) => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+            child: GestureDetector(
+              onTap: _loading ? null : _detect,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [kBlue1, kBlue2],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue2.withOpacity(0.4),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_loading)
+                      const CupertinoActivityIndicator(color: Colors.white)
+                    else
+                      const Icon(
+                        CupertinoIcons.location_fill,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    const SizedBox(width: 10),
+                    Text(
+                      _loading ? t('detecting') : t('detect_location'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
+            child: Text(
+              t('or_choose_city'),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: darkNotifier.value
+                    ? kDarkSubText
+                    : Colors.black.withOpacity(0.35),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              itemCount: kazakhstanCities.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: Colors.black.withOpacity(0.06)),
+              itemBuilder: (context, i) {
+                final cityKey = kazakhstanCities[i]['key'] as String;
+                // t(cityKey) возвращает название на текущем языке
+                final cityName = t(cityKey);
+                return GestureDetector(
+                  onTap: () => _go(cityKey),
+                  child: Container(
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.location,
+                          size: 15,
+                          color: kBlue2,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          cityName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: darkNotifier.value
+                                ? kDarkText
+                                : const Color(0xFF1C1C1E),
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 13,
+                          color: Color(0xFFC7C7CC),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ГЛАВНЫЙ ЭКРАН
+// Принимает cityKey вместо city-строки
+// ─────────────────────────────────────────────
+class HomeScreen extends StatefulWidget {
+  final String cityKey, role;
+  const HomeScreen({super.key, required this.cityKey, required this.role});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _tab = 0; // 0=Главная 1=Все 2=Избранное 3=Профиль
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = darkNotifier.value;
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkNotifier,
+      builder: (_, isDark, __) => ValueListenableBuilder<String>(
+        valueListenable: langNotifier,
+        builder: (_, lang, __) {
+          final cityName = t(widget.cityKey);
+          final isMaster = widget.role == 'master';
+
+          return Scaffold(
+            backgroundColor: isDark ? kDarkBg : const Color(0xFFF0F2F8),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  // ── Шапка ──────────────────────────────────
+                  _HomeHeader(
+                    cityName: cityName,
+                    isMaster: isMaster,
+                    role: widget.role,
+                    cityKey: widget.cityKey,
+                    isDark: isDark,
+                  ),
+
+                  // ── Контент вкладки ────────────────────────
+                  Expanded(
+                    child: _tab == 0
+                        ? _MainTab(
+                            role: widget.role,
+                            cityKey: widget.cityKey,
+                            isMaster: isMaster,
+                          )
+                        : _tab == 1
+                        ? _AllTab(cityKey: widget.cityKey, role: widget.role)
+                        : _tab == 2
+                        ? const FavoriteMastersScreen(embedded: true)
+                        : _ProfileTab(role: widget.role),
+                  ),
+
+                  // ── Нижний таббар ──────────────────────────
+                  _HomeTabBar(
+                    current: _tab,
+                    onTap: (i) => setState(() => _tab = i),
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  final String cityName, role, cityKey;
+  final bool isMaster, isDark;
+  const _HomeHeader({
+    required this.cityName,
+    required this.role,
+    required this.cityKey,
+    required this.isMaster,
+    required this.isDark,
+  });
+
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return '☀️ Доброе утро';
+    if (h < 18) return '🌤 Добрый день';
+    return '🌙 Добрый вечер';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<Color>>(
+      valueListenable: gradientNotifier,
+      builder: (_, grad, __) => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: grad,
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 10, 16, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  _greeting(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                // Город
+                GestureDetector(
+                  onTap: () => Navigator.pushReplacement(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (_) => CitySelectScreen(role: role),
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.25)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.location_fill,
+                          size: 11,
+                          color: Colors.white70,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          cityName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const _LangButton(),
+                const SizedBox(width: 6),
+                _SettingsButton(),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Заголовок с двухцветным текстом
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                  letterSpacing: -0.5,
+                  color: Colors.white,
+                ),
+                children: [
+                  TextSpan(text: 'Найди лучшего\n'),
+                  TextSpan(
+                    text: 'специалиста',
+                    style: TextStyle(color: Color(0xFF82B1FF)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Поиск
+            // Поиск
+            GestureDetector(
+              onTap: () => showCupertinoModalPopup(
+                context: context,
+                builder: (_) => _SearchSheet(cityKey: cityKey),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withOpacity(0.15)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.search,
+                      color: Colors.white38,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        t('find_master_hint'),
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ВКЛАДКА «ГЛАВНАЯ»
+// ─────────────────────────────────────────────
+class _MainTab extends StatelessWidget {
+  final String role, cityKey;
+  final bool isMaster;
+  const _MainTab({
+    required this.role,
+    required this.cityKey,
+    required this.isMaster,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => CustomScrollView(
+        slivers: [
+          // Баннер режима
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: _ModeBanner(
+                isMaster: isMaster,
+                role: role,
+                cityKey: cityKey,
+              ),
+            ),
+          ),
+
+          // Топ категории
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    t('categories'),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: gradientNotifier.value[0],
+                    ),
+                  ),
+                  Text(
+                    'Топ категории',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: gradientNotifier.value[0].withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Горизонтальный скролл топ категорий (первые 6)
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 110,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: 6,
+                itemBuilder: (context, i) {
+                  final cat = categoryData[i];
+                  final color = cat['color'] as Color;
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (_) => SubcategoryScreen(
+                          icon: cat['icon'] as IconData,
+                          titleKey: cat['titleKey'],
+                          subcategoryKeys: List<String>.from(
+                            cat['subcategoryKeys'],
+                          ),
+                          cityKey: cityKey,
+                          catColor: color,
+                        ),
+                      ),
+                    ),
+                    child: Container(
+                      width: 90,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            cat['icon'] as IconData,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              t(cat['titleKey']),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: _MasterFinderBanner(),
+          ),
+              
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// БАННЕР РЕЖИМА (Клиент / Мастер)
+// ─────────────────────────────────────────────
+class _ModeBanner extends StatelessWidget {
+  final bool isMaster;
+  final String role, cityKey;
+  const _ModeBanner({
+    required this.isMaster,
+    required this.role,
+    required this.cityKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = darkNotifier.value;
+    return GestureDetector(
+      onTap: () {
+        final newRole = role == 'client' ? 'master' : 'client';
+        roleNotifier.value = newRole;
+        setRoleColors(newRole);
+        Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(
+            builder: (_) => HomeScreen(cityKey: cityKey, role: newRole),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        decoration: BoxDecoration(
+          color: isDark ? kDarkCard : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Аватар-иконка
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A237E).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isMaster ? Icons.build_rounded : Icons.person_rounded,
+                color: gradientNotifier.value[0],
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Вы вошли как',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? kDarkSubText : const Color(0xFF8E8E93),
+                  ),
+                ),
+                Text(
+                  isMaster ? 'Мастер' : 'Клиент',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? kDarkText : const Color(0xFF1C1C1E),
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: gradientNotifier.value[0],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                isMaster ? '→ Стать клиентом' : '→ Стать мастером',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ВКЛАДКА «ВСЕ» — список всех категорий
+// ─────────────────────────────────────────────
+class _AllTab extends StatelessWidget {
+  final String cityKey, role;
+  const _AllTab({required this.cityKey, required this.role});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        itemCount: categoryData.length,
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          indent: 20,
+          endIndent: 20,
+          color: Colors.black.withOpacity(0.06),
+        ),
+        itemBuilder: (context, i) {
+          final cat = categoryData[i];
+          final color = cat['color'] as Color;
+          return GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (_) => SubcategoryScreen(
+                  icon: cat['icon'] as IconData,
+                  titleKey: cat['titleKey'],
+                  subcategoryKeys: List<String>.from(cat['subcategoryKeys']),
+                  cityKey: cityKey,
+                  catColor: color,
+                ),
+              ),
+            ),
+            child: Container(
+              color: Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Icon(
+                      cat['icon'] as IconData,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t(cat['titleKey']),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: darkNotifier.value
+                              ? kDarkText
+                              : const Color(0xFF1C1C1E),
+                        ),
+                      ),
+                      Text(
+                        '${(cat['subcategoryKeys'] as List).length} ${t('spec_count')}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    CupertinoIcons.chevron_right,
+                    size: 14,
+                    color: Color(0xFFC7C7CC),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ВКЛАДКА «ПРОФИЛЬ»
+// ─────────────────────────────────────────────
+class _ProfileTab extends StatelessWidget {
+  final String role;
+  const _ProfileTab({required this.role});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = darkNotifier.value;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A237E).withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                CupertinoIcons.person_circle,
+                size: 48,
+                color: Color(0xFF1A237E),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              t('not_logged_in'),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? kDarkText : const Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (_) => AuthScreen(role: role)),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [kBlue1, kBlue2],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue2.withOpacity(0.4),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    t('login_register'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// НИЖНИЙ ТАББАР
+// ─────────────────────────────────────────────
+class _HomeTabBar extends StatelessWidget {
+  final int current;
+  final ValueChanged<int> onTap;
+  final bool isDark;
+  const _HomeTabBar({
+    required this.current,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      (CupertinoIcons.house_fill, CupertinoIcons.house, 'Главная'),
+      (
+        CupertinoIcons.square_grid_2x2_fill,
+        CupertinoIcons.square_grid_2x2,
+        'Категории',
+      ),
+      (CupertinoIcons.heart_fill, CupertinoIcons.heart, 'Избранное'),
+      (CupertinoIcons.person_fill, CupertinoIcons.person, 'Профиль'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? kDarkCard : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            children: List.generate(items.length, (i) {
+              final active = current == i;
+              final item = items[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onTap(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: active
+                              ? const Color(0xFF1A237E).withOpacity(0.1)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          active ? item.$1 : item.$2,
+                          size: 22,
+                          color: active
+                              ? const Color(0xFF1A237E)
+                              : const Color(0xFF8E8E93),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.$3,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: active
+                              ? FontWeight.w700
+                              : FontWeight.normal,
+                          color: active
+                              ? const Color(0xFF1A237E)
+                              : const Color(0xFF8E8E93),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ТАКЖЕ ОБНОВИ FavoriteMastersScreen — добавь
+// параметр embedded, чтобы можно было встраивать
+// во вкладку без отдельного Scaffold.
+// ─────────────────────────────────────────────
+
+// ЗАМЕНИ существующий FavoriteMastersScreen на этот:
+
+// ─────────────────────────────────────────────
+// Карточка категории — принимает ключи, показывает t()
+// ─────────────────────────────────────────────
+class _CatCard extends StatefulWidget {
+  final IconData icon;
+  final Color catColor;
+  final String titleKey, cityKey;
+  final List<String> subcategoryKeys;
+  final Color accent;
+  const _CatCard({
+    required this.icon,
+    required this.catColor,
+    required this.titleKey,
+    required this.subcategoryKeys,
+    required this.cityKey,
+    required this.accent,
+  });
+  @override
+  State<_CatCard> createState() => _CatCardState();
+}
+
+class _CatCardState extends State<_CatCard> {
+  bool _p = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) {
+        final title = t(widget.titleKey);
+        final cardColor = widget.catColor;
+        return GestureDetector(
+          onTapDown: (_) => setState(() => _p = true),
+          onTapUp: (_) {
+            setState(() => _p = false);
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (_) => SubcategoryScreen(
+                  icon: widget.icon,
+                  titleKey: widget.titleKey,
+                  subcategoryKeys: widget.subcategoryKeys,
+                  cityKey: widget.cityKey,
+                  catColor: cardColor,
+                ),
+              ),
+            );
+          },
+          onTapCancel: () => setState(() => _p = false),
+          child: AnimatedScale(
+            scale: _p ? 0.95 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            child: Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: cardColor.withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(widget.icon, color: Colors.white, size: 22),
+                      ),
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${widget.subcategoryKeys.length} ${t('spec_count')}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ПОДКАТЕГОРИИ
+// ─────────────────────────────────────────────
+class SubcategoryScreen extends StatelessWidget {
+  final IconData icon;
+  final Color catColor;
+  final String titleKey, cityKey;
+  final List<String> subcategoryKeys;
+  const SubcategoryScreen({
+    super.key,
+    required this.icon,
+    required this.catColor,
+    required this.titleKey,
+    required this.subcategoryKeys,
+    required this.cityKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _AppShell(
+      grad: const [kBlue1, kBlue2],
+      showBack: true,
+      headerBuilder: (lang) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t(titleKey),
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '📍 ${t(cityKey)}',
+            style: const TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
+      cardBuilder: (lang) => ListView.separated(
+        padding: const EdgeInsets.only(top: 16),
+        itemCount: subcategoryKeys.length,
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          color: darkNotifier.value
+              ? kDarkDivider
+              : Colors.black.withOpacity(0.06),
+        ),
+        itemBuilder: (context, i) => _SubItem(
+          // Каждый раз при перерисовке берём переведённое название
+          nameKey: subcategoryKeys[i],
+          icon: icon,
+          onTap: () => Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (_) => MastersScreen(
+                categoryTitleKey: titleKey,
+                subcategoryKey: subcategoryKeys[i],
+                icon: icon,
+                cityKey: cityKey,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubItem extends StatefulWidget {
+  final String nameKey;
+  final IconData icon;
+  final VoidCallback onTap;
+  const _SubItem({
+    required this.nameKey,
+    required this.icon,
+    required this.onTap,
+  });
+  @override
+  State<_SubItem> createState() => _SubItemState();
+}
+
+class _SubItemState extends State<_SubItem> {
+  bool _p = false;
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => GestureDetector(
+        onTapDown: (_) => setState(() => _p = true),
+        onTapUp: (_) {
+          setState(() => _p = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _p = false),
+        child: AnimatedOpacity(
+          opacity: _p ? 0.5 : 1.0,
+          duration: const Duration(milliseconds: 80),
+          child: Container(
+            color: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+            child: Row(
+              children: [
+                Icon(widget.icon, size: 20, color: Colors.grey),
+                const SizedBox(width: 12),
+                Text(
+                  t(widget.nameKey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: darkNotifier.value
+                        ? kDarkText
+                        : const Color(0xFF1C1C1E),
+                  ),
+                ),
+                const Spacer(),
+                const Icon(
+                  CupertinoIcons.chevron_right,
+                  color: Color(0xFFC7C7CC),
+                  size: 14,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// МАСТЕРА
+// ─────────────────────────────────────────────
+class MastersScreen extends StatelessWidget {
+  final String categoryTitleKey, subcategoryKey, cityKey;
+  final IconData icon;
+  const MastersScreen({
+    super.key,
+    required this.categoryTitleKey,
+    required this.subcategoryKey,
+    required this.icon,
+    required this.cityKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _AppShell(
+      grad: const [kBlue1, kBlue2],
+      showBack: true,
+      headerBuilder: (lang) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t(subcategoryKey),
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '📍 ${t(cityKey)}',
+            style: const TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
+      cardBuilder: (lang) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🔨', style: TextStyle(fontSize: 64)),
+              const SizedBox(height: 16),
+              Text(
+                t('masters_soon'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                t('masters_soon_sub'),
+                style: const TextStyle(fontSize: 15, color: Color(0xFF8E8E93)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// АВТОРИЗАЦИЯ
+// ─────────────────────────────────────────────
+class AuthScreen extends StatefulWidget {
+  final String role;
+  const AuthScreen({super.key, required this.role});
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen>
+    with SingleTickerProviderStateMixin {
+  bool _isLogin = true;
+  late TabController _tab;
+
+  @override
+  void initState() {
+    super.initState();
+    _tab = TabController(length: 2, vsync: this);
+    _tab.addListener(() => setState(() => _isLogin = _tab.index == 0));
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
+  }
+
+  String get role => widget.role;
+
+  @override
+  Widget build(BuildContext context) {
+    final isMaster = role == 'master';
+    final g1 = isMaster ? kGreen1 : kBlue1;
+    final g2 = isMaster ? kGreen2 : kBlue2;
+
+    return _AppShell(
+      grad: [g1, g2],
+      showBack: true,
+      headerBuilder: (lang) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _isLogin ? t('hello_login') : t('create_account'),
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isMaster ? t('master_label') : t('client_label'),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.75),
+            ),
+          ),
+        ],
+      ),
+      cardBuilder: (lang) => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F7),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: TabBar(
+                controller: _tab,
+                indicator: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [g1, g2],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: g2.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: const Color(0xFF8E8E93),
+                labelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+                dividerColor: Colors.transparent,
+                tabs: [
+                  Tab(text: t('tab_login')),
+                  Tab(text: t('tab_register')),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              child: _isLogin
+                  ? _LoginForm(accent: g2, gradColors: [g1, g2], role: role)
+                  : _RegisterForm(
+                      accent: g2,
+                      gradColors: [g1, g2],
+                      role: role,
+                      isMaster: isMaster,
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Форма входа ───────────────────────────────
+class _LoginForm extends StatefulWidget {
+  final Color accent;
+  final List<Color> gradColors;
+  final String role;
+  const _LoginForm({
+    required this.accent,
+    required this.gradColors,
+    required this.role,
+  });
+  @override
+  State<_LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<_LoginForm> {
+  final _contact = TextEditingController(text: '+7 ');
+  final _pass = TextEditingController();
+  bool _isPhone = true, _obscure = true, _loading = false;
+
+  @override
+  void dispose() {
+    _contact.dispose();
+    _pass.dispose();
+    super.dispose();
+  }
+
+  void _toggle(bool phone) => setState(() {
+    _isPhone = phone;
+    _contact.text = phone ? '+7 ' : '@gmail.com';
+  });
+  void _onPhone(String v) {
+    if (!_isPhone) return;
+    final f = _formatPhone(v);
+    _contact.value = TextEditingValue(
+      text: f,
+      selection: TextSelection.collapsed(offset: f.length),
+    );
+  }
+
+  void _onEmail(String v) {
+    if (_isPhone) return;
+    // Если пользователь удалил @, восстанавливаем
+    if (!v.contains('@')) {
+      final f = '$v@gmail.com';
+      _contact.value = TextEditingValue(
+        text: f,
+        selection: TextSelection.collapsed(offset: v.length),
+      );
+      return;
+    }
+    // Курсор держим перед @, если пользователь не трогал домен
+    // Просто оставляем как есть
+  }
+
+  void _showForgotPassword() {
+    final resetContact = TextEditingController(text: '+7 ');
+    bool isPhone = true;
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setModalState) => Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: widget.gradColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: const Center(
+                            child: Text('🔑', style: TextStyle(fontSize: 22)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t('reset_password'),
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1C1C1E),
+                              ),
+                            ),
+                            Text(
+                              t('reset_subtitle'),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF2F2F7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.xmark,
+                              size: 13,
+                              color: Color(0xFF8E8E93),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _Chip(
+                          label: '📱 ${t('phone')}',
+                          active: isPhone,
+                          accent: widget.accent,
+                          onTap: () => setModalState(() {
+                            isPhone = true;
+                            resetContact.text = '+7 ';
+                          }),
+                        ),
+                        const SizedBox(width: 8),
+                        _Chip(
+                          label: '✉️ ${t('email')}',
+                          active: !isPhone,
+                          accent: widget.accent,
+                          onTap: () => setModalState(() {
+                            isPhone = false;
+                            resetContact.text = '';
+                          }),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: widget.accent.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: widget.accent.withOpacity(0.15),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            CupertinoIcons.info_circle,
+                            size: 16,
+                            color: widget.accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              isPhone
+                                  ? t('reset_phone_hint')
+                                  : t('reset_email_hint'),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black.withOpacity(0.6),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      isPhone ? t('phone') : t('email'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF3C3C43),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E6),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isPhone
+                                ? CupertinoIcons.phone
+                                : CupertinoIcons.mail,
+                            size: 18,
+                            color: const Color(0xFF8E8E93),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: resetContact,
+                              keyboardType: isPhone
+                                  ? TextInputType.phone
+                                  : TextInputType.emailAddress,
+                              autofocus: true,
+                              onChanged: (v) {
+                                if (!isPhone) return;
+                                final f = _formatPhone(v);
+                                setModalState(() {
+                                  resetContact.value = TextEditingValue(
+                                    text: f,
+                                    selection: TextSelection.collapsed(
+                                      offset: f.length,
+                                    ),
+                                  );
+                                });
+                              },
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF1C1C1E),
+                              ),
+                              decoration: InputDecoration(
+                                hintText: isPhone
+                                    ? '+7 (___) ___-__-__'
+                                    : 'example@mail.com',
+                                hintStyle: const TextStyle(
+                                  color: Color(0xFFB8B8C0),
+                                  fontSize: 15,
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _BigButton(
+                      label: isPhone ? t('send_sms') : t('send_email'),
+                      gradColors: widget.gradColors,
+                      accent: widget.accent,
+                      loading: false,
+                      onTap: () {
+                        final val = resetContact.text.trim();
+                        if (val.isEmpty || (isPhone && val.length < 18)) return;
+                        Navigator.pop(ctx);
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (_) => CupertinoAlertDialog(
+                            title: Text(
+                              isPhone ? t('sms_sent') : t('email_sent'),
+                            ),
+                            content: Text(
+                              isPhone
+                                  ? '${t('code_sent_to')}$val'
+                                  : '${t('instruction_sent_to')}$val',
+                            ),
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text(t('ok')),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _submit() async {
+    if (_contact.text.trim().isEmpty || _pass.text.isEmpty) {
+      _err(t('fill_all'));
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _loading = false);
+    if (mounted)
+      showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: Text(t('success')),
+          content: Text(t('logged_in')),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(t('ok')),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+  }
+
+  void _err(String m) => showCupertinoDialog(
+    context: context,
+    builder: (_) => CupertinoAlertDialog(
+      title: Text(t('error')),
+      content: Text(m),
+      actions: [
+        CupertinoDialogAction(
+          child: Text(t('ok')),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TypeSwitch(
+            isPhone: _isPhone,
+            accent: widget.accent,
+            onToggle: _toggle,
+          ),
+          const SizedBox(height: 20),
+          _FlatField(
+            label: _isPhone ? t('phone') : t('email'),
+            controller: _contact,
+            hint: _isPhone ? '+7 (___) ___-__-__' : 'name@gmail.com',
+            icon: _isPhone ? CupertinoIcons.phone : CupertinoIcons.mail,
+            keyboardType: _isPhone
+                ? TextInputType.phone
+                : TextInputType.emailAddress,
+            onChanged: _isPhone ? _onPhone : _onEmail,
+            accent: widget.accent,
+          ),
+          const SizedBox(height: 16),
+          _FlatField(
+            label: t('password'),
+            controller: _pass,
+            hint: '••••••••',
+            icon: CupertinoIcons.lock,
+            obscure: _obscure,
+            onToggleObscure: () => setState(() => _obscure = !_obscure),
+            accent: widget.accent,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _showForgotPassword,
+              child: Text(
+                t('forgot_password'),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: widget.accent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _BigButton(
+            label: t('btn_login'),
+            gradColors: widget.gradColors,
+            accent: widget.accent,
+            loading: _loading,
+            onTap: _submit,
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: t('no_account'),
+                    style: const TextStyle(color: Color(0xFF8E8E93)),
+                  ),
+                  TextSpan(
+                    text: t('sign_up'),
+                    style: TextStyle(
+                      color: widget.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Форма регистрации ─────────────────────────
+class _RegisterForm extends StatefulWidget {
+  final Color accent;
+  final List<Color> gradColors;
+  final String role;
+  final bool isMaster;
+  const _RegisterForm({
+    required this.accent,
+    required this.gradColors,
+    required this.role,
+    required this.isMaster,
+  });
+  @override
+  State<_RegisterForm> createState() => _RegisterFormState();
+}
+
+List<String> _specSelected = [];
+
+class _RegisterFormState extends State<_RegisterForm> {
+  final _name = TextEditingController();
+  final _surname = TextEditingController();
+  final _contact = TextEditingController(text: '+7 ');
+  final _pass = TextEditingController();
+  final _pass2 = TextEditingController();
+  bool _isPhone = true,
+      _obscure = true,
+      _agree = false,
+      _loading = false,
+      _passMatch = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _pass.addListener(_chk);
+    _pass2.addListener(_chk);
+  }
+
+  void _chk() {
+    final ok = _pass2.text.isEmpty || _pass.text == _pass2.text;
+    if (ok != _passMatch) setState(() => _passMatch = ok);
+  }
+
+  void _toggle(bool phone) => setState(() {
+    _isPhone = phone;
+    _contact.text = phone ? '+7 ' : '@gmail.com';
+  });
+  void _onPhone(String v) {
+    if (!_isPhone) return;
+    final f = _formatPhone(v);
+    _contact.value = TextEditingValue(
+      text: f,
+      selection: TextSelection.collapsed(offset: f.length),
+    );
+    void _onEmail(String v) {
+      if (_isPhone) return;
+      // Если пользователь удалил @, восстанавливаем
+      if (!v.contains('@')) {
+        final f = '$v@gmail.com';
+        _contact.value = TextEditingValue(
+          text: f,
+          selection: TextSelection.collapsed(offset: v.length),
+        );
+        return;
+      }
+      // Курсор держим перед @, если пользователь не трогал домен
+      // Просто оставляем как есть
+    }
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _surname.dispose();
+    _contact.dispose();
+    _pass.dispose();
+    _pass2.dispose();
+    super.dispose();
+  }
+
+  void _submit() async {
+    if (_name.text.isEmpty ||
+        _surname.text.isEmpty ||
+        _contact.text.trim().isEmpty ||
+        _pass.text.isEmpty ||
+        _pass2.text.isEmpty) {
+      _err(t('fill_all'));
+      return;
+    }
+    if (widget.isMaster && _specSelected.isEmpty) {
+      _err(t('choose_spec'));
+      return;
+    }
+    if (_pass.text != _pass2.text) {
+      _err(t('passwords_no_match'));
+      return;
+    }
+    if (!_agree) {
+      _err(t('accept_terms'));
+      return;
+    }
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _loading = false);
+    if (mounted)
+      showCupertinoDialog(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: Text(t('account_created')),
+          content: Text(widget.isMaster ? t('welcome_master') : t('welcome')),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(t('ok')),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+  }
+
+  void _err(String m) => showCupertinoDialog(
+    context: context,
+    builder: (_) => CupertinoAlertDialog(
+      title: Text(t('error')),
+      content: Text(m),
+      actions: [
+        CupertinoDialogAction(
+          child: Text(t('ok')),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TypeSwitch(
+            isPhone: _isPhone,
+            accent: widget.accent,
+            onToggle: _toggle,
+          ),
+          const SizedBox(height: 20),
+          _FlatField(
+            label: t('first_name'),
+            controller: _name,
+            hint: t('first_name_hint'),
+            icon: CupertinoIcons.person,
+            textCapitalization: TextCapitalization.words,
+            accent: widget.accent,
+          ),
+          const SizedBox(height: 12),
+          _FlatField(
+            label: t('last_name'),
+            controller: _surname,
+            hint: t('last_name_hint'),
+            icon: CupertinoIcons.person_2,
+            textCapitalization: TextCapitalization.words,
+            accent: widget.accent,
+          ),
+          const SizedBox(height: 12),
+          _FlatField(
+            label: _isPhone ? t('phone') : t('email'),
+            controller: _contact,
+            hint: _isPhone ? '+7 (___) ___-__-__' : 'example@mail.com',
+            icon: _isPhone ? CupertinoIcons.phone : CupertinoIcons.mail,
+            keyboardType: _isPhone
+                ? TextInputType.phone
+                : TextInputType.emailAddress,
+            onChanged: _onPhone,
+            accent: widget.accent,
+          ),
+          if (widget.isMaster) ...[
+            const SizedBox(height: 12),
+            _SpecPicker(
+              accent: widget.accent,
+              gradColors: widget.gradColors,
+              selected: _specSelected,
+              onChanged: (v) => setState(() {
+                if (_specSelected.contains(v))
+                  _specSelected.remove(v);
+                else if (_specSelected.length < 3)
+                  _specSelected.add(v);
+              }),
+            ),
+          ],
+          const SizedBox(height: 12),
+          _FlatField(
+            label: t('password'),
+            controller: _pass,
+            hint: t('password_hint'),
+            icon: CupertinoIcons.lock,
+            obscure: _obscure,
+            onToggleObscure: () => setState(() => _obscure = !_obscure),
+            accent: widget.accent,
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PasswordRule(
+                  textKey: 'pass_rule_length',
+                  controller: _pass,
+                  check: (v) => v.length >= 6,
+                ),
+                _PasswordRule(
+                  textKey: 'pass_rule_digit',
+                  controller: _pass,
+                  check: (v) => v.contains(RegExp(r'[0-9]')),
+                ),
+                _PasswordRule(
+                  textKey: 'pass_rule_upper',
+                  controller: _pass,
+                  check: (v) => v.contains(RegExp(r'[A-Z]')),
+                ),
+                _PasswordRule(
+                  textKey: 'pass_rule_special',
+                  controller: _pass,
+                  check: (v) => v.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]')),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _FlatField(
+            label: t('confirm_password'),
+            controller: _pass2,
+            hint: t('repeat_password'),
+            icon: CupertinoIcons.lock_fill,
+            obscure: true,
+            hasError: !_passMatch,
+            accent: widget.accent,
+          ),
+          if (!_passMatch)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.exclamationmark_circle_fill,
+                    color: Color(0xFFFF3B30),
+                    size: 13,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    t('passwords_no_match'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFFF3B30),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () => setState(() => _agree = !_agree),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    gradient: _agree
+                        ? LinearGradient(
+                            colors: widget.gradColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: _agree ? null : const Color(0xFFF2F2F7),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: _agree
+                          ? Colors.transparent
+                          : const Color(0xFFD1D1D6),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: _agree
+                      ? const Icon(Icons.check, color: Colors.white, size: 14)
+                      : null,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF8E8E93),
+                      ),
+                      children: [
+                        TextSpan(text: t('agree_text')),
+                        TextSpan(
+                          text: t('terms'),
+                          style: TextStyle(
+                            color: widget.accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        TextSpan(text: t('and')),
+                        TextSpan(
+                          text: t('privacy'),
+                          style: TextStyle(
+                            color: widget.accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _BigButton(
+            label: t('btn_register'),
+            gradColors: widget.gradColors,
+            accent: widget.accent,
+            loading: _loading,
+            onTap: _submit,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: t('have_account'),
+                    style: const TextStyle(color: Color(0xFF8E8E93)),
+                  ),
+                  TextSpan(
+                    text: t('sign_in'),
+                    style: TextStyle(
+                      color: widget.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Вспомогательные виджеты ───────────────────
+class _TypeSwitch extends StatelessWidget {
+  final bool isPhone;
+  final Color accent;
+  final void Function(bool) onToggle;
+  const _TypeSwitch({
+    required this.isPhone,
+    required this.accent,
+    required this.onToggle,
+  });
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      _Chip(
+        label: '📱 ${t('phone')}',
+        active: isPhone,
+        accent: accent,
+        onTap: () => onToggle(true),
+      ),
+      const SizedBox(width: 8),
+      _Chip(
+        label: '✉️ ${t('email')}',
+        active: !isPhone,
+        accent: accent,
+        onTap: () => onToggle(false),
+      ),
+    ],
+  );
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final Color accent;
+  final VoidCallback onTap;
+  const _Chip({
+    required this.label,
+    required this.active,
+    required this.accent,
+    required this.onTap,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? accent.withOpacity(0.1) : const Color(0xFFF2F2F7),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? accent : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: active ? accent : const Color(0xFF8E8E93),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FlatField extends StatelessWidget {
+  final String label, hint;
+  final TextEditingController controller;
+  final IconData icon;
+  final bool obscure, hasError;
+  final TextInputType keyboardType;
+  final TextCapitalization textCapitalization;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onToggleObscure;
+  final Color accent;
+
+  const _FlatField({
+    required this.label,
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    required this.accent,
+    this.obscure = false,
+    this.hasError = false,
+    this.keyboardType = TextInputType.text,
+    this.textCapitalization = TextCapitalization.none,
+    this.onChanged,
+    this.onToggleObscure,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: darkNotifier.value ? kDarkText : const Color(0xFF1C1C1E),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: hasError
+                    ? const Color(0xFFFF3B30)
+                    : (darkNotifier.value
+                          ? kDarkDivider
+                          : const Color(0xFFE0E0E6)),
+
+                width: 1.5,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: hasError
+                    ? const Color(0xFFFF3B30)
+                    : const Color(0xFF8E8E93),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  obscureText: obscure,
+                  keyboardType: keyboardType,
+                  textCapitalization: textCapitalization,
+                  onChanged: onChanged,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: darkNotifier.value
+                        ? kDarkText
+                        : const Color(0xFF1C1C1E),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: const TextStyle(
+                      color: Color(0xFFB8B8C0),
+                      fontSize: 15,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              if (onToggleObscure != null)
+                GestureDetector(
+                  onTap: onToggleObscure,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      obscure ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                      size: 18,
+                      color: const Color(0xFF8E8E93),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BigButton extends StatefulWidget {
+  final String label;
+  final List<Color> gradColors;
+  final Color accent;
+  final bool loading;
+  final VoidCallback onTap;
+  const _BigButton({
+    required this.label,
+    required this.gradColors,
+    required this.accent,
+    required this.loading,
+    required this.onTap,
+  });
+  @override
+  State<_BigButton> createState() => _BigButtonState();
+}
+
+class _BigButtonState extends State<_BigButton> {
+  bool _p = false;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _p = true),
+      onTapUp: (_) {
+        setState(() => _p = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _p = false),
+      child: AnimatedScale(
+        scale: _p ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.gradColors,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: widget.accent.withOpacity(0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Center(
+            child: widget.loading
+                ? const CupertinoActivityIndicator(color: Colors.white)
+                : Text(
+                    widget.label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Выбор специализации
+// Теперь хранит ключи, отображает через t()
+// ─────────────────────────────────────────────
+class _SpecPicker extends StatelessWidget {
+  final Color accent;
+  final List<Color> gradColors;
+  final List<String> selected; // хранит ключи ('sub_plumbers' и т.д.)
+  final ValueChanged<String> onChanged;
+  const _SpecPicker({
+    required this.accent,
+    required this.gradColors,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  void _openPicker(BuildContext context) => showCupertinoModalPopup(
+    context: context,
+    builder: (_) => _SpecPickerSheet(
+      accent: accent,
+      gradColors: gradColors,
+      selected: selected,
+      onSelected: onChanged,
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                t('specialization'),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3C3C43),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${t('spec_selected')} ${selected.length}/3',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: selected.length == 3
+                      ? accent
+                      : const Color(0xFF8E8E93),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t('spec_hint'),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black.withOpacity(0.35),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (selected.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: selected
+                  .map(
+                    (key) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: gradColors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Отображаем переведённое название
+                          Text(
+                            t(key),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => onChanged(key),
+                            child: const Icon(
+                              CupertinoIcons.xmark_circle_fill,
+                              size: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (selected.length < 3)
+            GestureDetector(
+              onTap: () => _openPicker(context),
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFE0E0E6), width: 1.5),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.plus_circle, size: 18, color: accent),
+                    const SizedBox(width: 10),
+                    Text(
+                      t('add_spec'),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: accent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(CupertinoIcons.chevron_right, size: 14, color: accent),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpecPickerSheet extends StatefulWidget {
+  final Color accent;
+  final List<Color> gradColors;
+  final List<String> selected;
+  final ValueChanged<String> onSelected;
+  const _SpecPickerSheet({
+    required this.accent,
+    required this.gradColors,
+    required this.selected,
+    required this.onSelected,
+  });
+  @override
+  State<_SpecPickerSheet> createState() => _SpecPickerSheetState();
+}
+
+class _SpecPickerSheetState extends State<_SpecPickerSheet> {
+  String? _selectedCategoryTitleKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => Material(
+        color: Colors.transparent,
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.65,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0E0E6),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: Row(
+                  children: [
+                    if (_selectedCategoryTitleKey != null)
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => _selectedCategoryTitleKey = null),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              CupertinoIcons.chevron_left,
+                              size: 18,
+                              color: widget.accent,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              t('back'),
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: widget.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        _selectedCategoryTitleKey != null
+                            ? t(_selectedCategoryTitleKey!)
+                            : t('choose_category'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1C1C1E),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.accent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${widget.selected.length}/3',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: widget.accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF2F2F7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.xmark,
+                          size: 13,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.selected.length >= 3)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFB74D)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.info_circle_fill,
+                          size: 14,
+                          color: Color(0xFFFF9800),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          t('max_spec'),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFE65100),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Divider(height: 1, color: Colors.black.withOpacity(0.06)),
+              Expanded(
+                child: _selectedCategoryTitleKey == null
+                    ? _CategoryList(
+                        accent: widget.accent,
+                        onSelect: (titleKey) => setState(
+                          () => _selectedCategoryTitleKey = titleKey,
+                        ),
+                      )
+                    : _SubcategoryList(
+                        categoryTitleKey: _selectedCategoryTitleKey!,
+                        accent: widget.accent,
+                        gradColors: widget.gradColors,
+                        selected: widget.selected,
+                        onSelect: (v) {
+                          widget.onSelected(v);
+                          setState(() {});
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryList extends StatelessWidget {
+  final Color accent;
+  final ValueChanged<String> onSelect; // передаёт titleKey
+  const _CategoryList({required this.accent, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: categoryData.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: Colors.black.withOpacity(0.05)),
+        itemBuilder: (context, i) {
+          final cat = categoryData[i];
+          final titleKey = cat['titleKey'] as String;
+          return GestureDetector(
+            onTap: () => onSelect(titleKey),
+            child: Container(
+              color: Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    cat['icon'] as IconData,
+                    size: 24,
+                    color: const Color(0xFF1C1C1E),
+                  ),
+
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t(titleKey),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                          ),
+                        ),
+                        Text(
+                          '${(cat['subcategoryKeys'] as List).length} ${t('specializations')}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(CupertinoIcons.chevron_right, size: 14, color: accent),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SubcategoryList extends StatelessWidget {
+  final String categoryTitleKey;
+  final Color accent;
+  final List<Color> gradColors;
+  final List<String> selected; // ключи выбранных подкатегорий
+  final ValueChanged<String> onSelect;
+  const _SubcategoryList({
+    required this.categoryTitleKey,
+    required this.accent,
+    required this.gradColors,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = categoryData.firstWhere(
+      (c) => c['titleKey'] == categoryTitleKey,
+    );
+    final subKeys = List<String>.from(cat['subcategoryKeys']);
+    final icon = cat['icon'] as IconData;
+
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: subKeys.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: Colors.black.withOpacity(0.05)),
+        itemBuilder: (context, i) {
+          final key = subKeys[i];
+          final isSelected = selected.contains(key);
+          final isDisabled = selected.length >= 3 && !isSelected;
+          return GestureDetector(
+            onTap: isDisabled ? null : () => onSelect(key),
+            child: AnimatedOpacity(
+              opacity: isDisabled ? 0.4 : 1.0,
+              duration: const Duration(milliseconds: 150),
+              child: Container(
+                color: isSelected
+                    ? accent.withOpacity(0.05)
+                    : Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? accent.withOpacity(0.12)
+                            : const Color(0xFFF2F2F7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          icon,
+                          size: 18,
+                          color: const Color(0xFF555555),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        t(key), // ← переводим ключ в текущий язык
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: darkNotifier.value
+                              ? kDarkText
+                              : const Color(0xFF1C1C1E),
+
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? LinearGradient(
+                                colors: gradColors,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: isSelected ? null : const Color(0xFFF2F2F7),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : const Color(0xFFD1D1D6),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 14,
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Кнопка языка ──────────────────────────────
+class _LangButton extends StatelessWidget {
+  const _LangButton();
+
+  void _showPicker(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Material(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: darkNotifier.value ? kDarkCard : Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Text(
+                    'Язык / Language / Тіл',
+                    style: TextStyle(
+                      color: darkNotifier.value
+                          ? kDarkText
+                          : const Color(0xFF1C1C1E),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const _LangOption(
+                    flag: '🇷🇺',
+                    langName: 'Русский',
+                    code: 'RU',
+                  ),
+                  const _LangOption(
+                    flag: '🇰🇿',
+                    langName: 'Қазақша',
+                    code: 'KZ',
+                  ),
+                  const _LangOption(
+                    flag: '🇬🇧',
+                    langName: 'English',
+                    code: 'EN',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, lang, __) => GestureDetector(
+        onTap: () => _showPicker(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                lang == 'RU'
+                    ? '🇷🇺'
+                    : lang == 'KZ'
+                    ? '🇰🇿'
+                    : '🇬🇧',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                lang,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                CupertinoIcons.chevron_down,
+                size: 10,
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsButton extends StatelessWidget {
+  const _SettingsButton();
+
+  void _showSettings(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Material(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: darkNotifier.value ? kDarkCard : Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [kBlue1, kBlue2],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            CupertinoIcons.settings,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Настройки',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: darkNotifier.value
+                              ? kDarkText
+                              : const Color(0xFF1C1C1E),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Избранные мастера
+                  _SettingsItem(
+                    icon: CupertinoIcons.star,
+                    title: 'Мастера',
+                    subtitle: 'Избранные мастера',
+                    onTap: () {
+                      Navigator.pop(context); // закрываем настройки
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (_) => const FavoriteMastersScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  // Почта
+                  _SettingsItem(
+                    icon: CupertinoIcons.mail,
+                    title: 'Почта',
+                    subtitle: 'Поменять почту',
+                    onTap: () {
+                      Navigator.pop(context);
+                      final ctrl = TextEditingController(text: '@gmail.com');
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Сменить почту'),
+                          content: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: CupertinoTextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.emailAddress,
+                              placeholder: 'example@gmail.com',
+                            ),
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              isDestructiveAction: true,
+                              child: const Text('Отмена'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            CupertinoDialogAction(
+                              child: const Text('Сохранить'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Пароль
+                  _SettingsItem(
+                    icon: CupertinoIcons.lock,
+                    title: 'Пароль',
+                    subtitle: 'Поменять пароль',
+                    onTap: () {
+                      Navigator.pop(context);
+                      final oldPass = TextEditingController();
+                      final newPass = TextEditingController();
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Сменить пароль'),
+                          content: Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              CupertinoTextField(
+                                controller: oldPass,
+                                obscureText: true,
+                                placeholder: 'Старый пароль',
+                              ),
+                              const SizedBox(height: 8),
+                              CupertinoTextField(
+                                controller: newPass,
+                                obscureText: true,
+                                placeholder: 'Новый пароль',
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              isDestructiveAction: true,
+                              child: const Text('Отмена'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            CupertinoDialogAction(
+                              child: const Text('Сохранить'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Сотовый номер телефона
+                  _SettingsItem(
+                    icon: CupertinoIcons.phone,
+                    title: 'Сотовый номер',
+                    subtitle: 'Поменять номер сотового телефона',
+                    onTap: () {
+                      Navigator.pop(context);
+                      final ctrl = TextEditingController(text: '+7 ');
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Сменить номер'),
+                          content: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: CupertinoTextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.phone,
+                              placeholder: '+7 (___) ___-__-__',
+                            ),
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              isDestructiveAction: true,
+                              child: const Text('Отмена'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            CupertinoDialogAction(
+                              child: const Text('Сохранить'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Поддержка
+                  _SettingsItem(
+                    icon: CupertinoIcons.chat_bubble_text,
+                    title: 'Поддержка',
+                    subtitle: 'Напишите в поддержку',
+                    onTap: () {
+                      Navigator.pop(context);
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Поддержка'),
+                          content: const Text(
+                            'Email: support@qyzmetqz.kz\nTelegram: @qyzmetqz_support\n\nВремя работы: 9:00 - 21:00',
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: const Text('Закрыть'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Смена темы
+                  _SettingsItem(
+                    icon: darkNotifier.value
+                        ? CupertinoIcons.sun_max
+                        : CupertinoIcons.moon,
+                    title: darkNotifier.value ? 'Светлая тема' : 'Тёмная тема',
+                    subtitle: darkNotifier.value
+                        ? 'Переключить на светлую'
+                        : 'Переключить на тёмную',
+                    onTap: () {
+                      darkNotifier.value = !darkNotifier.value;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  // Пункт — уведомления
+                  _SettingsItem(
+                    icon: CupertinoIcons.bell,
+                    title: 'Уведомления',
+                    subtitle: 'Push-уведомления о заказах',
+                    onTap: () {
+                      Navigator.pop(context);
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Уведомления'),
+                          content: const Text(
+                            'Управление уведомлениями доступно в настройках вашего телефона.',
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Пункт — конфиденциальность
+                  _SettingsItem(
+                    icon: CupertinoIcons.lock_shield, // ← правильная иконка
+                    title: 'Конфиденциальность',
+                    subtitle: 'Политика и условия использования',
+                    onTap: () {
+                      Navigator.pop(context);
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('Конфиденциальность'),
+                          content: const Text(
+                            'Политика конфиденциальности доступна на сайте qyzmetqz.kz/privacy',
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  // Пункт — о приложении
+                  _SettingsItem(
+                    icon: CupertinoIcons.info_circle, // ← правильная иконка
+                    title: 'О приложении',
+                    subtitle: 'QyzmetQZ v1.0.0',
+                    onTap: () {
+                      Navigator.pop(context);
+                      showCupertinoDialog(
+                        context: context,
+                        builder: (_) => CupertinoAlertDialog(
+                          title: const Text('QyzmetQZ'),
+                          content: const Text(
+                            'Версия: 1.0.0\nРазработано в Казахстане 🇰🇿\n\n© 2026 QyzmetQZ',
+                          ),
+                          actions: [
+                            CupertinoDialogAction(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showSettings(context),
+      child: Container(
+        padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+        ),
+        child: const Icon(
+          CupertinoIcons.settings,
+          color: Colors.white,
+          size: 16,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsItem extends StatelessWidget {
+  final IconData icon;
+  final String title, subtitle;
+  final VoidCallback onTap;
+  const _SettingsItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: kFieldBg(),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: kBlue2),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: darkNotifier.value
+                        ? kDarkText
+                        : const Color(0xFF1C1C1E),
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            const Icon(
+              CupertinoIcons.chevron_right,
+              size: 14,
+              color: Color(0xFFC7C7CC),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LangOption extends StatelessWidget {
+  final String flag, langName, code;
+  const _LangOption({
+    required this.flag,
+    required this.langName,
+    required this.code,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: langNotifier,
+      builder: (_, currentLang, __) {
+        final isActive = currentLang == code;
+        return GestureDetector(
+          onTap: () {
+            langNotifier.value = code;
+            Navigator.pop(context);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? kBlue2.withOpacity(0.08)
+                  : (darkNotifier.value
+                        ? kDarkCard
+                        : const Color(0xFFF7F8FA)), // ← исправлено
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isActive
+                    ? kBlue2.withOpacity(0.08)
+                    : (darkNotifier.value
+                          ? kDarkCard
+                          : const Color(0xFFF7F8FA)),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(flag, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 14),
+                Text(
+                  langName,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive
+                        ? kBlue2
+                        : (darkNotifier.value
+                              ? kDarkText
+                              : const Color(0xFF1C1C1E)),
+                  ),
+                ),
+                const Spacer(),
+                if (isActive)
+                  const Icon(
+                    CupertinoIcons.checkmark_circle_fill,
+                    color: kBlue2,
+                    size: 20,
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// StatefulWidget
+class _PasswordRule extends StatefulWidget {
+  final String textKey; // ← новый, с 'textKey'
+  final TextEditingController controller;
+  final bool Function(String) check;
+  const _PasswordRule({
+    required this.textKey,
+    required this.controller,
+    required this.check,
+  });
+
+  @override
+  State<_PasswordRule> createState() => _PasswordRuleState();
+}
+
+// State
+class _PasswordRuleState extends State<_PasswordRule> {
+  late VoidCallback _langListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _langListener = () => setState(() {});
+    widget.controller.addListener(() => setState(() {}));
+    langNotifier.addListener(_langListener);
+  }
+
+  @override
+  void dispose() {
+    langNotifier.removeListener(_langListener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ← внутри класса
+    final passed = widget.check(widget.controller.text);
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        children: [
+          Icon(
+            passed
+                ? CupertinoIcons.checkmark_circle_fill
+                : CupertinoIcons.circle,
+            size: 13,
+            color: passed ? const Color(0xFF34C759) : const Color(0xFFB8B8C0),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            t(widget.textKey),
+            style: TextStyle(
+              fontSize: 12,
+              color: passed ? const Color(0xFF34C759) : const Color(0xFF8E8E93),
+              fontWeight: passed ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+} // ← закрывающая скобка _PasswordRuleState
+
+class FavoriteMastersScreen extends StatefulWidget {
+  final bool embedded;
+  const FavoriteMastersScreen({super.key, this.embedded = false});
+  @override
+  State<FavoriteMastersScreen> createState() => _FavoriteMastersScreenState();
+}
+
+class _FavoriteMastersScreenState extends State<FavoriteMastersScreen> {
+  final List<Map<String, dynamic>> _allMasters = [
+    {
+      'name': 'Серик Нуржанов',
+      'spec': 'Сантехник',
+      'icon': '🔧',
+      'rating': 4.8,
+    },
+    {'name': 'Айгерим Бекова', 'spec': 'Маникюр', 'icon': '💅', 'rating': 4.9},
+    {'name': 'Дамир Сейткали', 'spec': 'Электрик', 'icon': '⚡', 'rating': 4.7},
+    {'name': 'Жанар Омарова', 'spec': 'Репетитор', 'icon': '📚', 'rating': 5.0},
+    {'name': 'Руслан Ахметов', 'spec': 'Сварщик', 'icon': '🔨', 'rating': 4.6},
+  ];
+  final Set<int> _favorites = {};
+
+  Widget _body() {
+    if (_favorites.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('⭐', style: TextStyle(fontSize: 64)),
+              const SizedBox(height: 16),
+              Text(
+                'Нет избранных мастеров',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: darkNotifier.value
+                      ? kDarkText
+                      : const Color(0xFF1C1C1E),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Добавляйте мастеров в избранное,\nнажав на ⭐ в профиле мастера',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF8E8E93),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: _favorites
+          .map(
+            (i) => _MasterCard(
+              master: _allMasters[i],
+              isFavorite: true,
+              onToggle: () => setState(() => _favorites.remove(i)),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) return _body();
+    return _AppShell(
+      grad: const [kBlue1, kBlue2],
+      showBack: true,
+      headerBuilder: (lang) => const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Избранные',
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Ваши любимые мастера',
+            style: TextStyle(fontSize: 15, color: Colors.white70),
+          ),
+        ],
+      ),
+      cardBuilder: (lang) => _body(),
+    );
+  }
+}
+
+class _MasterCard extends StatelessWidget {
+  final Map<String, dynamic> master;
+  final bool isFavorite;
+  final VoidCallback onToggle;
+  const _MasterCard({
+    required this.master,
+    required this.isFavorite,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: darkNotifier.value ? kDarkCard : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isFavorite
+              ? const Color(0xFFFFD700).withOpacity(0.5)
+              : Colors.black.withOpacity(0.06),
+          width: isFavorite ? 1.5 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Аватар
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: kBlue2.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: Text(master['icon'], style: const TextStyle(fontSize: 26)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Имя и специализация
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  master['name'],
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: darkNotifier.value
+                        ? kDarkText
+                        : const Color(0xFF1C1C1E),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  master['spec'],
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF8E8E93),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.star_fill,
+                      size: 12,
+                      color: Color(0xFFFFD700),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${master['rating']}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: darkNotifier.value
+                            ? kDarkText
+                            : const Color(0xFF1C1C1E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Кнопка избранного
+          GestureDetector(
+            onTap: onToggle,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isFavorite
+                    ? const Color(0xFFFFD700).withOpacity(0.15)
+                    : const Color(0xFFF2F2F7),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isFavorite ? CupertinoIcons.star_fill : CupertinoIcons.star,
+                size: 20,
+                color: isFavorite
+                    ? const Color(0xFFFFD700)
+                    : const Color(0xFF8E8E93),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchSheet extends StatefulWidget {
+  final String cityKey;
+  const _SearchSheet({required this.cityKey});
+  @override
+  State<_SearchSheet> createState() => _SearchSheetState();
+}
+
+class _SearchSheetState extends State<_SearchSheet> {
+  final _ctrl = TextEditingController();
+  List<Map<String, dynamic>> _results = [];
+
+  void _search(String query) {
+    if (query.trim().isEmpty) {
+      setState(() => _results = []);
+      return;
+    }
+    final q = query.toLowerCase();
+    final found = <Map<String, dynamic>>[];
+    for (final cat in categoryData) {
+      for (final subKey in cat['subcategoryKeys'] as List<String>) {
+        if (t(subKey).toLowerCase().contains(q) ||
+            t(cat['titleKey']).toLowerCase().contains(q)) {
+          found.add({
+            'catTitleKey': cat['titleKey'],
+            'subKey': subKey,
+            'icon': cat['icon'],
+            'color': cat['color'],
+          });
+        }
+      }
+    }
+    setState(() => _results = found);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: darkNotifier.value ? kDarkBg : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            // Хэндл
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0E0E6),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Поле ввода
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: darkNotifier.value
+                      ? kDarkCard
+                      : const Color(0xFFF2F2F7),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.search,
+                      size: 18,
+                      color: Color(0xFF8E8E93),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _ctrl,
+                        autofocus: true,
+                        onChanged: _search,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: darkNotifier.value
+                              ? kDarkText
+                              : const Color(0xFF1C1C1E),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: t('find_master_hint'),
+                          hintStyle: const TextStyle(color: Color(0xFF8E8E93)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_ctrl.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _ctrl.clear();
+                          _search('');
+                        },
+                        child: const Icon(
+                          CupertinoIcons.xmark_circle_fill,
+                          size: 18,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 1, color: Colors.black.withOpacity(0.06)),
+            // Результаты
+            Expanded(
+              child: _results.isEmpty
+                  ? Center(
+                      child: Text(
+                        _ctrl.text.isEmpty
+                            ? '🔍 Начните вводить...'
+                            : '😕 Ничего не найдено',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF8E8E93),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: _results.length,
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: Colors.black.withOpacity(0.05),
+                      ),
+                      itemBuilder: (context, i) {
+                        final r = _results[i];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (_) => MastersScreen(
+                                  categoryTitleKey: r['catTitleKey'],
+                                  subcategoryKey: r['subKey'],
+                                  icon: r['icon'] as IconData,
+                                  cityKey: widget.cityKey,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 13,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: r['color'] as Color,
+                                    borderRadius: BorderRadius.circular(11),
+                                  ),
+                                  child: Icon(
+                                    r['icon'] as IconData,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      t(r['subKey']),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: darkNotifier.value
+                                            ? kDarkText
+                                            : const Color(0xFF1C1C1E),
+                                      ),
+                                    ),
+                                    Text(
+                                      t(r['catTitleKey']),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF8E8E93),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                const Icon(
+                                  CupertinoIcons.chevron_right,
+                                  size: 14,
+                                  color: Color(0xFFC7C7CC),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+class _SelectionTile extends StatelessWidget {
+  final bool isDark;
+  final List<Color> grad;
+  final bool selected;
+  final Widget leading;
+  final String title;
+  final VoidCallback onTap;
+
+  const _SelectionTile({
+    required this.isDark,
+    required this.grad,
+    required this.selected,
+    required this.leading,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? grad[0].withOpacity(0.1)
+              : (isDark ? const Color(0xFF1C1C22) : const Color(0xFFF7F8FA)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? grad[0] : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            leading,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: isDark ? Colors.white : const Color(0xFF1C1C1E),
+                ),
+              ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: selected
+                  ? Icon(
+                      CupertinoIcons.checkmark_circle_fill,
+                      key: const ValueKey('check'),
+                      color: grad[0],
+                      size: 22,
+                    )
+                  : const SizedBox(
+                      key: ValueKey('empty'),
+                      width: 22,
+                      height: 22,
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final String value;
+  final bool isDark;
+  final bool last;
+
+  const _SummaryRow({
+    required this.emoji,
+    required this.label,
+    required this.value,
+    required this.isDark,
+    this.last = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 0 : 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isEmpty ? '—' : value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : const Color(0xFF1C1C1E),
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══ КНОПКА-БАННЕР НА ГЛАВНУЮ ═══
+// Добавить в _MainTab после баннера режима:
+//
+// SliverToBoxAdapter(
+//   child: _MasterFinderBanner(),
+// ),
+
+class _MasterFinderBanner extends StatelessWidget {
+  const _MasterFinderBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final grad = gradientNotifier.value;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (_) => const MasterFinderScreen()),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: grad,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: grad[0].withOpacity(0.35),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Center(
+                  child: Text('🔍', style: TextStyle(fontSize: 26)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Найти мастера',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      '6 вопросов — и мастер у вашей двери',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  CupertinoIcons.chevron_right,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AppThemes {
+  // Клиент — синий
+  static const clientSeed = Color(0xFF1A237E);
+  // Мастер — зелёный/бирюзовый
+  static const masterSeed = Color(0xFF00695C);
+
+  static ThemeData get clientTheme => ThemeData(
+    brightness: Brightness.light,
+    colorScheme: ColorScheme.fromSeed(seedColor: clientSeed),
+    useMaterial3: true,
+  );
+
+  static ThemeData get clientDarkTheme => ThemeData(
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: clientSeed,
+      brightness: Brightness.dark,
+    ),
+    useMaterial3: true,
+  );
+
+  static ThemeData get masterTheme => ThemeData(
+    brightness: Brightness.light,
+    colorScheme: ColorScheme.fromSeed(seedColor: masterSeed),
+    useMaterial3: true,
+  );
+
+  static ThemeData get masterDarkTheme => ThemeData(
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: masterSeed,
+      brightness: Brightness.dark,
+    ),
+    useMaterial3: true,
+  );
+}
